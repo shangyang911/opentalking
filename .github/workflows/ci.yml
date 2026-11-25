@@ -171,6 +171,9 @@ jobs:
           context: .
           file: deploy/Dockerfile.production
           push: true
+          # ACR Personal does not accept OCI attestation manifests.
+          provenance: false
+          sbom: false
           tags: ${{ env.IMAGE_PREFIX }}-api:${{ github.sha }}
           labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
           cache-from: type=gha,scope=production-api
@@ -182,6 +185,8 @@ jobs:
           context: .
           file: deploy/Dockerfile.web
           push: true
+          provenance: false
+          sbom: false
           tags: ${{ env.IMAGE_PREFIX }}-web:${{ github.sha }}
           labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
           cache-from: type=gha,scope=production-web
