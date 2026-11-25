@@ -31,6 +31,8 @@ GitHub `production` 环境限制为 `main`，配置以下 Secret：
 
 每次发布保存独立 Compose 和镜像清单。容器健康检查及同源 `/api/healthz` 成功后才更新 `/srv/opentalking/current`。更新失败时尝试恢复此前的 Compose 和镜像；数据库数据保留，数据库变更需要保持向后兼容。
 
+服务器在部署锁内比较当前与候选提交，只接受相同或更新的 `main` 提交，避免较慢的旧流水线覆盖新版本。健康检查失败后的自动恢复使用已保存的上一版本，不受此更新顺序检查限制。
+
 ```bash
 docker compose -p opentalking \
   --env-file /srv/opentalking/shared/stack.env \

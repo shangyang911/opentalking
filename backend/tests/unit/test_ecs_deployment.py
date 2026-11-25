@@ -35,11 +35,12 @@ if 'up' in sys.argv and os.environ.get('FAIL_NEW') == '1':
         sys.exit(1)
 ''')
     curl = bin_dir / "curl"
-    curl.write_text(f"#!{sys.executable}\n" + '''import json, pathlib, sys
+    curl.write_text(f"#!{sys.executable}\n" + '''import json, os, pathlib, sys
 if '-o' in sys.argv:
     pathlib.Path(sys.argv[sys.argv.index('-o') + 1]).write_text('services: {}\\n')
 elif any('/compare/' in arg for arg in sys.argv):
-    print(json.dumps({'status': 'ahead'}))
+    stale = os.environ.get('STALE_RELEASE') == '1' and not any(arg.endswith('...main') for arg in sys.argv)
+    print(json.dumps({'status': 'behind' if stale else 'ahead'}))
 ''')
     docker.chmod(0o755)
     curl.chmod(0o755)
@@ -69,7 +70,7 @@ def test_failed_release_restores_previous_and_does_not_promote(deployment):
     previous = root / "releases" / "previous"
     previous.mkdir(parents=True)
     (previous / "compose.yml").write_text("services: {}\n")
-    (previous / "images.env").write_text("API_IMAGE=previous\n")
+    (previous / "images.env").write_text("API_IMAGE=previous\nRELEASE_SHA=" + "d" * 40 + "\n")
     (root / "current").symlink_to(previous)
     result = run_deploy(dict(env, FAIL_NEW="1"))
     assert result.returncode != 0
@@ -77,6 +78,20 @@ def test_failed_release_restores_previous_and_does_not_promote(deployment):
     calls = [json.loads(line) for line in Path(env["CALL_LOG"]).read_text().splitlines()]
     assert any("up" in call and str(previous / "compose.yml") in call for call in calls)
     assert not list(root.glob(".docker.*"))
+
+
+def test_older_workflow_cannot_replace_a_newer_release(deployment):
+    root, env = deployment
+    current = root / "releases" / "previous"
+    current.mkdir(parents=True)
+    (current / "compose.yml").write_text("services: {}\n")
+    (current / "images.env").write_text("RELEASE_SHA=" + "d" * 40 + "\n")
+    (root / "current").symlink_to(current)
+    result = run_deploy(dict(env, STALE_RELEASE="1"))
+    assert result.returncode != 0
+    assert "older" in result.stderr.lower()
+    assert (root / "current").resolve() == current
+    assert not Path(env["CALL_LOG"]).exists()
 
 
 @pytest.mark.parametrize("sha,api", [("main; touch /tmp/injected", API), (SHA, "untrusted/image:latest")])

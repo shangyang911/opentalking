@@ -31,6 +31,21 @@ curl -fsS --retry 2 --max-time 30 \
   "https://api.github.com/repos/$repository/compare/$sha...main" |
   python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get("status") in {"ahead", "identical"} else "Commit is not on main")'
 
+previous=''
+if [[ -L $root/current ]]; then
+  previous=$(readlink -f "$root/current")
+  [[ $previous == "$root/releases/"* && -f $previous/compose.yml && -f $previous/images.env ]] || {
+    echo 'Invalid previous-release pointer.' >&2; exit 2;
+  }
+  current_sha=$(sed -n 's/^RELEASE_SHA=//p' "$previous/images.env")
+  [[ $current_sha =~ ^[0-9a-f]{40}$ ]] || {
+    echo 'Invalid current release SHA.' >&2; exit 2;
+  }
+  curl -fsS --retry 2 --max-time 30 \
+    "https://api.github.com/repos/$repository/compare/$current_sha...$sha" |
+    python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get("status") in {"ahead", "identical"} else "Refusing an older or divergent release")'
+fi
+
 release=$(mktemp -d "$root/releases/$sha.XXXXXX")
 curl -fsS --retry 2 --max-time 30 \
   "https://raw.githubusercontent.com/$repository/$sha/deploy/compose.production.yml" \
@@ -57,14 +72,6 @@ printf '%s' "$registry_token" | docker login ghcr.io \
   --username "${repository%%/*}" --password-stdin >/dev/null
 unset registry_token
 compose "$release" pull api web
-
-previous=''
-if [[ -L $root/current ]]; then
-  previous=$(readlink -f "$root/current")
-  [[ $previous == "$root/releases/"* && -f $previous/compose.yml ]] || {
-    echo 'Invalid previous-release pointer.' >&2; exit 2;
-  }
-fi
 
 if ! compose "$release" up -d --wait --wait-timeout 240 ||
    ! curl -fsS --retry 3 --retry-delay 2 --max-time 10 \

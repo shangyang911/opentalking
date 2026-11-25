@@ -31,6 +31,8 @@ Registry authentication uses the job's short-lived `GITHUB_TOKEN`, sent on stdin
 
 Each release retains its Compose file and image manifest. `/srv/opentalking/current` changes only after container health checks and the same-origin `/api/healthz` probe succeed. A failed update attempts to restore the previous Compose file and images. Database changes must remain backward compatible because image recovery does not restore database contents.
 
+Under the deployment lock, the server accepts only the same or a newer `main` commit relative to the running version. An older slow workflow cannot replace newer production code. Health-failure recovery uses the saved previous release independently of this forward-release check.
+
 ```bash
 docker compose -p opentalking \
   --env-file /srv/opentalking/shared/stack.env \
