@@ -12,6 +12,24 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
 COPY backend ./backend
 COPY LICENSE ./
 RUN pip install --no-cache-dir -e './backend[quicktalk-cpu]'
+# Keep registry uploads bounded: a single combined venv layer can exceed 1 GB
+# and repeatedly time out when publishing across regions.
+RUN python - <<'PY'
+from pathlib import Path
+import shutil
+
+source = Path('/opt/venv/lib/python3.11/site-packages')
+buckets = [Path('/runtime-layers') / str(i) for i in range(8)]
+sizes = [0] * len(buckets)
+for bucket in buckets:
+    bucket.mkdir(parents=True)
+entries = [(entry, sum(p.stat().st_size for p in entry.rglob('*') if p.is_file())
+            if entry.is_dir() else entry.stat().st_size) for entry in source.iterdir()]
+for entry, size in sorted(entries, key=lambda pair: pair[1], reverse=True):
+    index = min(range(len(buckets)), key=lambda i: sizes[i])
+    shutil.move(str(entry), str(buckets[index] / entry.name))
+    sizes[index] += size
+PY
 
 FROM python:3.11-slim-bookworm
 ENV VIRTUAL_ENV=/opt/venv
@@ -24,6 +42,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg libgl1 libglib2.0-0 libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=build /opt/venv /opt/venv
+COPY --from=build /runtime-layers/0/ /opt/venv/lib/python3.11/site-packages/
+COPY --from=build /runtime-layers/1/ /opt/venv/lib/python3.11/site-packages/
+COPY --from=build /runtime-layers/2/ /opt/venv/lib/python3.11/site-packages/
+COPY --from=build /runtime-layers/3/ /opt/venv/lib/python3.11/site-packages/
+COPY --from=build /runtime-layers/4/ /opt/venv/lib/python3.11/site-packages/
+COPY --from=build /runtime-layers/5/ /opt/venv/lib/python3.11/site-packages/
+COPY --from=build /runtime-layers/6/ /opt/venv/lib/python3.11/site-packages/
+COPY --from=build /runtime-layers/7/ /opt/venv/lib/python3.11/site-packages/
 COPY --from=build /app/backend /app/backend
 COPY LICENSE ./
 COPY examples ./examples
