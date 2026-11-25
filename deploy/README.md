@@ -1,5 +1,9 @@
 # Deployment
 
+For production ECS deployment and automated releases, see
+[Alibaba ECS and GitHub CI/CD](../docs/en/deployment/ecs-cicd.md)
+or the [Chinese guide](../docs/zh/deployment/ecs-cicd.md).
+
 Run from the repository root:
 
 ```bash

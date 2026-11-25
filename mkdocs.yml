@@ -260,6 +260,7 @@ nav:
               - FlashHead: model-support/models/flashhead.md
       - Deployment Guide:
           - Deployment Guide Overview: deployment/index.md
+          - ECS CI/CD: deployment/ecs-cicd.md
           - Support Matrix: deployment/support-matrix.md
           - Avatar Assets: avatar_models/avatar.md
           - Speech Models:

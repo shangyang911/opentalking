@@ -148,11 +148,13 @@ async def create_video_creation_job(
     require_voice_access(voice)
     if duo_dialog:
         dialog = _parse_duo_dialog(duo_dialog)
-        if not isinstance(dialog.get("voices") or {}, dict) or not isinstance(dialog.get("speakers") or {}, dict):
+        dialog_voices = dialog.get("voices") or {}
+        dialog_speakers = dialog.get("speakers") or {}
+        if not isinstance(dialog_voices, dict) or not isinstance(dialog_speakers, dict):
             raise HTTPException(422, "双人对话音色配置格式错误。")
-        for value in (dialog.get("voices") or {}).values():
+        for value in dialog_voices.values():
             require_voice_access(str(value) if value else None)
-        for speaker in (dialog.get("speakers") or {}).values():
+        for speaker in dialog_speakers.values():
             if isinstance(speaker, dict):
                 require_voice_access(speaker.get("voice") or speaker.get("voice_id"))
     flp_config = _parse_fasterliveportrait_config(model, fasterliveportrait_config)

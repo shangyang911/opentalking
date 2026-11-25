@@ -1,0 +1,32 @@
+FROM python:3.11-slim-bookworm AS build
+
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential \
+    && rm -rf /var/lib/apt/lists/* \
+    && python -m venv "$VIRTUAL_ENV"
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && pip install --no-cache-dir torch==2.10.0 torchvision==0.25.0 torchaudio==2.10.0 \
+       --index-url https://download.pytorch.org/whl/cpu
+COPY backend ./backend
+COPY LICENSE ./
+RUN pip install --no-cache-dir -e './backend[quicktalk-cpu]'
+
+FROM python:3.11-slim-bookworm
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="${VIRTUAL_ENV}/bin:${PATH}" \
+    PYTHONUNBUFFERED=1 \
+    OPENTALKING_PROJECT_ROOT=/app \
+    OPENTALKING_ENV_FILE=/run/opentalking/app.env
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg libgl1 libglib2.0-0 libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=build /opt/venv /opt/venv
+COPY --from=build /app/backend /app/backend
+COPY LICENSE ./
+COPY examples ./examples
+RUN python -c "from apps.unified.main import create_app; create_app()"
+EXPOSE 8000
+CMD ["opentalking-unified", "--host", "0.0.0.0", "--port", "8000"]

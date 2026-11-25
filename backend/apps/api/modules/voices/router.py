@@ -38,7 +38,7 @@ async def list_cloned_voices() -> dict:
 async def create_cloned_voice(
     audio: UploadFile = File(...),
     display_label: str = Form(..., min_length=1, max_length=40),
-) -> dict:
+) -> dict | None:
     label = display_label.strip()
     if not label or any(ord(char) < 32 for char in label):
         raise HTTPException(400, "请为专属声音填写名称（最多 40 字）。")

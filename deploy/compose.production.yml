@@ -1,0 +1,97 @@
+name: opentalking
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    command: ["--innodb-buffer-pool-size=128M", "--max-connections=50"]
+    environment:
+      MYSQL_DATABASE: opentalking
+      MYSQL_USER: opentalking
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in the server stack.env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in the server stack.env}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    mem_limit: 768m
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_PASSWORD mysql -h 127.0.0.1 -u $$MYSQL_USER -D $$MYSQL_DATABASE -e 'SELECT 1' >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 30s
+    logging: *logging
+
+  api:
+    image: ${API_IMAGE:?Set the API image digest}
+    restart: unless-stopped
+    env_file:
+      - ${RUNTIME_DIR:?Set the absolute runtime directory}/app.env
+    environment:
+      OPENTALKING_AUTH_ENABLED: "true"
+      OPENTALKING_MYSQL_HOST: mysql
+      OPENTALKING_MYSQL_PORT: "3306"
+      OPENTALKING_MYSQL_USER: opentalking
+      OPENTALKING_MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      OPENTALKING_MYSQL_DATABASE: opentalking
+      OPENTALKING_AVATARS_DIR: /app/examples/avatars
+      OPENTALKING_TORCH_DEVICE: cpu
+      OPENTALKING_STT_PREWARM_ON_STARTUP: "0"
+      FORWARDED_ALLOW_IPS: ${PROXY_IP:-172.28.80.10}
+      OMP_NUM_THREADS: "2"
+    volumes:
+      - application_data:/app/data
+      - application_output:/app/output
+      - avatars:/app/examples/avatars
+      - ${RUNTIME_DIR}:/run/opentalking
+    mem_limit: 2304m
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=5)"]
+      interval: 10s
+      timeout: 8s
+      retries: 12
+      start_period: 45s
+    stop_grace_period: 60s
+    networks:
+      default:
+        ipv4_address: ${API_IP:-172.28.80.20}
+    logging: *logging
+
+  web:
+    image: ${WEB_IMAGE:?Set the web image digest}
+    restart: unless-stopped
+    ports:
+      - "${HTTP_BIND:-0.0.0.0}:${HTTP_PORT:-80}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      default:
+        ipv4_address: ${PROXY_IP:-172.28.80.10}
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/api/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    logging: *logging
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${PROXY_SUBNET:-172.28.80.0/24}
+
+volumes:
+  mysql_data:
+  application_data:
+  application_output:
+  avatars:

@@ -1328,6 +1328,7 @@ async def speak_audio_stream_ws(websocket: WebSocket, session_id: str) -> None:
     pump_task = asyncio.create_task(pump())
     text = ""
     dashscope_ms = 0.0
+    meter = current_meter.get()
     try:
         text, dashscope_ms = await asyncio.wait_for(
             asyncio.to_thread(
@@ -1335,7 +1336,7 @@ async def speak_audio_stream_ws(websocket: WebSocket, session_id: str) -> None:
                 sq,
                 provider=requested_stt_provider,
             ),
-            timeout=current_meter.get().audio_limit() if current_meter.get() else 120.0,
+            timeout=meter.audio_limit() if meter else 120.0,
         )
     except asyncio.TimeoutError:
         log.warning(

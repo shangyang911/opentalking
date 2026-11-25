@@ -946,7 +946,9 @@ def test_speak_flashtalk_uploaded_pcm_queues_redis_pcm_key() -> None:
     asyncio.run(run())
 
 
-def test_handle_worker_task_reads_uploaded_pcm_from_redis_key() -> None:
+def test_handle_worker_task_reads_uploaded_pcm_from_redis_key(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(task_consumer.tempfile, "gettempdir", lambda: str(tmp_path))
+
     async def run() -> None:
         sid = "sess_pcm_key"
         pcm = b"\x03\x00\x04\x00"
