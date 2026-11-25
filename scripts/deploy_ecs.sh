@@ -47,8 +47,8 @@ if [[ -L $root/current ]]; then
 fi
 
 release=$(mktemp -d "$root/releases/$sha.XXXXXX")
-curl -fsS --retry 2 --max-time 30 \
-  "https://raw.githubusercontent.com/$repository/$sha/deploy/compose.production.yml" \
+curl -fsS --retry 2 --max-time 30 -H 'Accept: application/vnd.github.raw+json' \
+  "https://api.github.com/repos/$repository/contents/deploy/compose.production.yml?ref=$sha" \
   -o "$release/compose.yml"
 printf 'API_IMAGE=%s\nWEB_IMAGE=%s\nRELEASE_SHA=%s\n' \
   "$api_image" "$web_image" "$sha" > "$release/images.env"
