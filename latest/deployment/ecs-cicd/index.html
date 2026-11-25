@@ -6082,11 +6082,12 @@
 <h1 id="ecs-github-cicd">阿里云 ECS 与 GitHub CI/CD<a class="headerlink" href="#ecs-github-cicd" title="Permanent link">&para;</a></h1>
 <p>生产配置为 <code>deploy/compose.production.yml</code>：Nginx 前端、单进程 unified API 和私网 MySQL。数据库、作品、知识资料、音色和形象使用独立持久卷；运行配置目录单独挂载，管理员保存配置后不会随容器更新丢失。</p>
 <h2 id="_1">发布流程<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
-<p>推送到 <code>main</code> 后，CI 先执行后端检查、前端测试与构建、Python 打包和文档检查。全部通过后，构建 CPU 生产镜像与前端镜像，上传到 GitHub Container Registry；部署任务使用镜像 digest，通过 SSH 更新 ECS。PR 和其他分支不执行生产发布。</p>
+<p>推送到 <code>main</code> 后，CI 先执行后端检查、前端测试与构建、Python 打包和文档检查。全部通过后，构建 CPU 生产镜像与前端镜像，上传到阿里云 ACR 私有镜像仓库；部署任务使用镜像 digest，通过 SSH 更新 ECS。PR 和其他分支不执行生产发布。</p>
 <p>历史断言在 <code>.github/ci-known-failures.json</code> 中逐项列出。<code>python scripts/ci_pytest.py</code> 继续执行这些测试，并使用 strict xfail 报告预期失败；新增失败和意外通过都会阻止发布，修复后的条目需要从清单移除。直接运行 <code>pytest -c pytest.ini</code> 仍报告全部原始失败。</p>
 <h2 id="_2">首次服务器配置<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p>安装 Docker、Compose、Python 3、curl 和 flock。创建 <code>/srv/opentalking/shared/runtime</code>，仅允许运维账号访问。</p>
 <p>将 <code>deploy/stack.env.example</code> 复制为 <code>/srv/opentalking/shared/stack.env</code>，填写两份独立随机数据库密码。将 <code>deploy/app.env.example</code> 复制为 <code>/srv/opentalking/shared/runtime/app.env</code>，填写实际云端服务配置。两份私有文件均设置权限 <code>600</code>。</p>
+<p>在 ECS 同地域创建 ACR 镜像仓库 <code>opentalking-api</code> 和 <code>opentalking-web</code>。将 <code>deploy/registry.conf.example</code> 复制为 root 所有、权限 <code>600</code> 的 <code>/srv/opentalking/shared/registry.conf</code>，填写实际仓库域名、命名空间和登录名；此文件不含密码。GitHub 仓库变量 <code>ACR_REGISTRY</code> 与 <code>ACR_NAMESPACE</code> 必须与服务器配置一致，仓库 Secret <code>ACR_USERNAME</code> 与 <code>ACR_PASSWORD</code> 保存 Registry 专用凭证。ACR 个人版适合当前试用验证，无 SLA；正式生产按需要迁移企业版。</p>
 <p><code>OPENTALKING_ADMIN_USERNAME</code> 和 <code>OPENTALKING_ADMIN_PASSWORD</code> 可用于初始化管理员。不要将真实配置、私钥、数据库或用户媒体提交到 Git。</p>
 <p>将 <code>scripts/deploy_ecs.sh</code> 安装为 root 所有的 <code>/usr/local/sbin/opentalking-deploy</code>。专用 SSH 用户仅通过 sudo 调用该脚本，不加入 Docker 用户组；私钥只保存在 GitHub 的 <code>production</code> 环境 Secret 中。服务器脚本只接受当前仓库的镜像 digest，并确认提交已经合入 <code>main</code>。</p>
 <p>GitHub <code>production</code> 环境限制为 <code>main</code>，配置以下 Secret：</p>
@@ -6096,7 +6097,7 @@
 <li><code>ECS_SSH_KEY</code>：部署账号的 SSH 私钥。</li>
 <li><code>ECS_KNOWN_HOSTS</code>：通过可信渠道核对过的 SSH 主机公钥记录。</li>
 </ul>
-<p>镜像认证使用本次任务的短期 <code>GITHUB_TOKEN</code>，通过 stdin 传输，在服务器临时目录中使用并清理，不写入持久 Docker 登录配置。</p>
+<p>镜像认证使用 Registry 专用密码，通过 stdin 传输，在服务器临时目录中使用并清理，不写入持久 Docker 登录配置。凭证轮换时更新 <code>ACR_PASSWORD</code>，无需提交代码。</p>
 <h2 id="_3">验收、恢复与备份<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <p>每次发布保存独立 Compose 和镜像清单。容器健康检查及同源 <code>/api/healthz</code> 成功后才更新 <code>/srv/opentalking/current</code>。更新失败时尝试恢复此前的 Compose 和镜像；数据库数据保留，数据库变更需要保持向后兼容。</p>
 <p>服务器在部署锁内比较当前与候选提交，只接受相同或更新的 <code>main</code> 提交，避免较慢的旧流水线覆盖新版本。健康检查失败后的自动恢复使用已保存的上一版本，不受此更新顺序检查限制。</p>
