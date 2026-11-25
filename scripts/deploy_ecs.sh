@@ -12,13 +12,22 @@ if [[ $# != 3 || ! $sha =~ ^[0-9a-f]{40}$ ]]; then
   echo 'Invalid release: expected commit SHA and two image digests.' >&2
   exit 2
 fi
-if [[ ! $api_image =~ ^ghcr\.io/${repository}-api@sha256:[0-9a-f]{64}$ ||
-      ! $web_image =~ ^ghcr\.io/${repository}-web@sha256:[0-9a-f]{64}$ ]]; then
-  echo 'Invalid image: only this repository and immutable digests are accepted.' >&2
-  exit 2
-fi
 if [[ ! -f $root/shared/stack.env || ! -f $root/shared/runtime/app.env ]]; then
   echo 'Missing server configuration: shared/stack.env or shared/runtime/app.env.' >&2
+  exit 2
+fi
+if [[ ! -f $root/shared/registry.conf ]]; then
+  echo 'Missing server registry configuration: shared/registry.conf.' >&2
+  exit 2
+fi
+# This file is installed by the operator, root-owned, and never taken from Git.
+source "$root/shared/registry.conf"
+image_prefix="$REGISTRY/$REGISTRY_NAMESPACE/${repository##*/}"
+if [[ $api_image != "$image_prefix-api@sha256:"* ||
+      $web_image != "$image_prefix-web@sha256:"* ||
+      ! ${api_image##*@sha256:} =~ ^[0-9a-f]{64}$ ||
+      ! ${web_image##*@sha256:} =~ ^[0-9a-f]{64}$ ]]; then
+  echo 'Invalid image: only the configured repository and immutable digests are accepted.' >&2
   exit 2
 fi
 
@@ -61,15 +70,15 @@ compose() {
 }
 compose "$release" config --quiet
 
-# The short-lived Actions token travels only on stdin and lives in a private
+# The registry password travels only on stdin and lives in a private
 # temporary Docker directory. Never persist it in the host's Docker config.
 IFS= read -r registry_token || true
 [[ -n ${registry_token:-} ]] || { echo 'Missing registry token on stdin.' >&2; exit 2; }
 DOCKER_CONFIG=$(mktemp -d "$root/.docker.XXXXXX")
 export DOCKER_CONFIG
 trap 'rm -rf -- "$DOCKER_CONFIG"' EXIT
-printf '%s' "$registry_token" | docker login ghcr.io \
-  --username "${repository%%/*}" --password-stdin >/dev/null
+printf '%s' "$registry_token" | docker login "$REGISTRY" \
+  --username "$REGISTRY_USERNAME" --password-stdin >/dev/null
 unset registry_token
 compose "$release" pull api web
 

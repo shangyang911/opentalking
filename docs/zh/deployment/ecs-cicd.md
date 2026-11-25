@@ -4,7 +4,7 @@
 
 ## 发布流程
 
-推送到 `main` 后，CI 先执行后端检查、前端测试与构建、Python 打包和文档检查。全部通过后，构建 CPU 生产镜像与前端镜像，上传到 GitHub Container Registry；部署任务使用镜像 digest，通过 SSH 更新 ECS。PR 和其他分支不执行生产发布。
+推送到 `main` 后，CI 先执行后端检查、前端测试与构建、Python 打包和文档检查。全部通过后，构建 CPU 生产镜像与前端镜像，上传到阿里云 ACR 私有镜像仓库；部署任务使用镜像 digest，通过 SSH 更新 ECS。PR 和其他分支不执行生产发布。
 
 历史断言在 `.github/ci-known-failures.json` 中逐项列出。`python scripts/ci_pytest.py` 继续执行这些测试，并使用 strict xfail 报告预期失败；新增失败和意外通过都会阻止发布，修复后的条目需要从清单移除。直接运行 `pytest -c pytest.ini` 仍报告全部原始失败。
 
@@ -13,6 +13,8 @@
 安装 Docker、Compose、Python 3、curl 和 flock。创建 `/srv/opentalking/shared/runtime`，仅允许运维账号访问。
 
 将 `deploy/stack.env.example` 复制为 `/srv/opentalking/shared/stack.env`，填写两份独立随机数据库密码。将 `deploy/app.env.example` 复制为 `/srv/opentalking/shared/runtime/app.env`，填写实际云端服务配置。两份私有文件均设置权限 `600`。
+
+在 ECS 同地域创建 ACR 镜像仓库 `opentalking-api` 和 `opentalking-web`。将 `deploy/registry.conf.example` 复制为 root 所有、权限 `600` 的 `/srv/opentalking/shared/registry.conf`，填写实际仓库域名、命名空间和登录名；此文件不含密码。GitHub 仓库变量 `ACR_REGISTRY` 与 `ACR_NAMESPACE` 必须与服务器配置一致，仓库 Secret `ACR_USERNAME` 与 `ACR_PASSWORD` 保存 Registry 专用凭证。ACR 个人版适合当前试用验证，无 SLA；正式生产按需要迁移企业版。
 
 `OPENTALKING_ADMIN_USERNAME` 和 `OPENTALKING_ADMIN_PASSWORD` 可用于初始化管理员。不要将真实配置、私钥、数据库或用户媒体提交到 Git。
 
@@ -25,7 +27,7 @@ GitHub `production` 环境限制为 `main`，配置以下 Secret：
 - `ECS_SSH_KEY`：部署账号的 SSH 私钥。
 - `ECS_KNOWN_HOSTS`：通过可信渠道核对过的 SSH 主机公钥记录。
 
-镜像认证使用本次任务的短期 `GITHUB_TOKEN`，通过 stdin 传输，在服务器临时目录中使用并清理，不写入持久 Docker 登录配置。
+镜像认证使用 Registry 专用密码，通过 stdin 传输，在服务器临时目录中使用并清理，不写入持久 Docker 登录配置。凭证轮换时更新 `ACR_PASSWORD`，无需提交代码。
 
 ## 验收、恢复与备份
 

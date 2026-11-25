@@ -13,6 +13,7 @@ SCRIPT = Path(__file__).resolve().parents[3] / "scripts" / "deploy_ecs.sh"
 SHA = "a" * 40
 API = "ghcr.io/shangyang911/opentalking-api@sha256:" + "b" * 64
 WEB = "ghcr.io/shangyang911/opentalking-web@sha256:" + "c" * 64
+ACR = "registry.example.aliyuncs.com"
 
 
 @pytest.fixture
@@ -24,6 +25,9 @@ def deployment(tmp_path):
     shared.mkdir(parents=True)
     (shared / "app.env").write_text("OPENTALKING_AUTH_ENABLED=true\n")
     (root / "shared" / "stack.env").write_text("MYSQL_PASSWORD=fixture\n")
+    (root / "shared" / "registry.conf").write_text(
+        "REGISTRY=ghcr.io\nREGISTRY_NAMESPACE=shangyang911\nREGISTRY_USERNAME=shangyang911\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     docker = bin_dir / "docker"
@@ -111,3 +115,18 @@ def test_missing_runtime_configuration_stops_before_deployment(deployment):
     assert result.returncode != 0
     assert "Missing server configuration" in result.stderr
     assert not Path(env["CALL_LOG"]).exists()
+
+
+def test_registry_is_selected_by_trusted_server_configuration(deployment):
+    root, env = deployment
+    (root / "shared" / "registry.conf").write_text(
+        f"REGISTRY={ACR}\nREGISTRY_NAMESPACE=shangyang911\nREGISTRY_USERNAME=operator\n"
+    )
+    result = subprocess.run(
+        ["bash", str(SCRIPT), SHA, API.replace("ghcr.io", ACR), WEB.replace("ghcr.io", ACR)],
+        env=env, input="private-registry-password\n", text=True, capture_output=True,
+    )
+    assert result.returncode == 0, result.stderr
+    calls = [json.loads(line) for line in Path(env["CALL_LOG"]).read_text().splitlines()]
+    assert any("login" in call and ACR in call and "operator" in call for call in calls)
+    assert "private-registry-password" not in result.stdout + result.stderr

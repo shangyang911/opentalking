@@ -1,0 +1,5 @@
+# Root-owned /srv/opentalking/shared/registry.conf. No password in this file.
+# Use the same registry hostname in GitHub's ACR_REGISTRY repository variable.
+REGISTRY=your-instance.cn-beijing.personal.cr.aliyuncs.com
+REGISTRY_NAMESPACE=your-namespace
+REGISTRY_USERNAME=your-registry-login

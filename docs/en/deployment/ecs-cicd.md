@@ -4,7 +4,7 @@
 
 ## Release flow
 
-A push to `main` runs backend checks, frontend tests and builds, Python packaging, and documentation validation. Successful checks publish CPU API and frontend images to GitHub Container Registry. The serialized deployment job updates ECS over SSH using immutable image digests. Pull requests and other branches cannot deploy.
+A push to `main` runs backend checks, frontend tests and builds, Python packaging, and documentation validation. Successful checks publish CPU API and frontend images to private Alibaba ACR repositories. The serialized deployment job updates ECS over SSH using immutable image digests. Pull requests and other branches cannot deploy.
 
 `.github/ci-known-failures.json` lists individual legacy assertions for retired interfaces. `python scripts/ci_pytest.py` still executes them with strict xfail reporting: new failures and unexpected passes block the workflow, and resolved entries must be removed. Plain `pytest -c pytest.ini` retains the original unmodified failure reporting.
 
@@ -13,6 +13,8 @@ A push to `main` runs backend checks, frontend tests and builds, Python packagin
 Install Docker, Compose, Python 3, curl, and flock. Create `/srv/opentalking/shared/runtime`, accessible only to the operator.
 
 Copy `deploy/stack.env.example` to `/srv/opentalking/shared/stack.env` and generate independent database passwords. Copy `deploy/app.env.example` to `/srv/opentalking/shared/runtime/app.env` and configure the actual cloud providers. Set both private files to mode `600`.
+
+Create `opentalking-api` and `opentalking-web` repositories in ACR in the ECS region. Copy `deploy/registry.conf.example` to root-owned `/srv/opentalking/shared/registry.conf`, mode `600`, and configure the registry hostname, namespace, and username; this file has no password. GitHub repository variables `ACR_REGISTRY` and `ACR_NAMESPACE` must match the server. Repository secrets `ACR_USERNAME` and `ACR_PASSWORD` hold dedicated registry credentials. ACR Personal Edition supports this trial validation without an SLA; use Enterprise Edition as needed for production.
 
 `OPENTALKING_ADMIN_USERNAME` and `OPENTALKING_ADMIN_PASSWORD` can initialize an administrator. Never commit real environment files, private keys, databases, or user media.
 
@@ -25,7 +27,7 @@ Restrict the GitHub `production` environment to `main` and configure these envir
 - `ECS_SSH_KEY`: that account's SSH private key.
 - `ECS_KNOWN_HOSTS`: SSH host keys verified through a trusted channel.
 
-Registry authentication uses the job's short-lived `GITHUB_TOKEN`, sent on stdin and removed from temporary Docker configuration after use.
+The dedicated registry password travels on stdin and is removed from temporary Docker configuration after use. Rotate it by updating `ACR_PASSWORD` without changing code.
 
 ## Verification, recovery, and backups
 
