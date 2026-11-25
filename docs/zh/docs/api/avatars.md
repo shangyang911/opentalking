@@ -185,8 +185,8 @@ curl -X POST http://localhost:8000/avatars/custom \
 
 ## 源文件
 
-- `apps/api/routes/avatars.py` —— 端点实现。
-- `apps/api/schemas/avatar.py` —— `AvatarSummary` 响应模型。
-- `opentalking/avatar/loader.py` —— `load_avatar_bundle()`。
-- `opentalking/avatar/validator.py` —— `list_avatar_dirs()`。
-- `opentalking/avatar/mouth_metadata.py` —— MediaPipe 嘴部检测。
+- `backend/apps/api/modules/avatars/router.py` —— 端点实现。
+- `backend/apps/api/modules/avatars/schemas.py` —— `AvatarSummary` 响应模型。
+- `backend/opentalking/avatar/loader.py` —— `load_avatar_bundle()`。
+- `backend/opentalking/avatar/validator.py` —— `list_avatar_dirs()`。
+- `backend/opentalking/avatar/mouth_metadata.py` —— MediaPipe 嘴部检测。

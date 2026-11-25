@@ -8,7 +8,7 @@ CUDA, weight paths, and model logs directly visible on the host.
 
 The packaged stack has the following operational characteristics:
 
-- The orchestrator (API, Worker, frontend, Redis) is built from Dockerfiles in `docker/`.
+- The orchestrator (API, Worker, frontend, Redis) is built from Dockerfiles in `deploy/`.
 - The inference runtime (OmniRT) is pulled from `ghcr.io/datascale-ai/omnirt` and enabled by Compose profiles.
 - Deployment scenarios are selected by Compose profile, not by separate Compose files.
 
@@ -22,18 +22,18 @@ The repository contains two Compose files:
 
 | File | Purpose |
 |------|---------|
-| `docker-compose.yml` | Base file. Defines `redis`, `api`, `worker`, `web` services unconditionally. Defines `omnirt` under the `gpu` profile. |
-| `docker-compose.gpu.yml` | Override applied with the `gpu` profile. Wires `api` and `worker` to OmniRT and disables mock synthesis. |
+| `deploy/compose.yml` | Base file. Defines `redis`, `api`, `worker`, `web` services unconditionally. Defines `omnirt` under the `gpu` profile. |
+| `deploy/compose.gpu.yml` | Override applied with the `gpu` profile. Wires `api` and `worker` to OmniRT and disables mock synthesis. |
 
 Containers built from local Dockerfiles:
 
 | Container | Dockerfile | Purpose |
 |-----------|-----------|---------|
-| `api` | `docker/Dockerfile.api` | FastAPI server on port 8000. |
-| `worker` | `docker/Dockerfile.worker` | Asynchronous pipeline executor. |
-| `web` | `docker/Dockerfile.web` | Vite-built frontend behind nginx, port 5173. |
+| `api` | `deploy/Dockerfile.api` | FastAPI server on port 8000. |
+| `worker` | `deploy/Dockerfile.worker` | Asynchronous pipeline executor. |
+| `web` | `deploy/Dockerfile.web` | Vite-built frontend behind nginx, port 5173. |
 
-Additional Dockerfiles (`docker/Dockerfile.flashtalk`, `docker/Dockerfile.flashtalk.ascend`)
+Additional Dockerfiles (`deploy/Dockerfile.flashtalk`, `deploy/Dockerfile.flashtalk.ascend`)
 are used for legacy bare-metal FlashTalk deployments and are not invoked by the
 default Compose stack.
 
@@ -67,7 +67,7 @@ OPENTALKING_STT_DASHSCOPE_API_KEY=<dashscope-api-key>
 ```
 
 The Compose stack reads `.env` automatically via the `env_file` directive in
-`docker-compose.yml`.
+`deploy/compose.yml`.
 
 ### Start
 
@@ -122,7 +122,7 @@ language model and speech recognition keys.
 
 ```bash title="terminal"
 docker compose --profile gpu \
-  -f docker-compose.yml -f docker-compose.gpu.yml \
+  -f deploy/compose.yml -f deploy/compose.gpu.yml \
   up -d
 ```
 
@@ -163,7 +163,7 @@ for current options.
 
 ```bash title="terminal"
 docker compose --profile gpu \
-  -f docker-compose.yml -f docker-compose.gpu.yml \
+  -f deploy/compose.yml -f deploy/compose.gpu.yml \
   down
 ```
 
@@ -180,7 +180,7 @@ The Compose stack writes the following persistent state:
 
 Production deployments should bind-mount avatar and voice directories from host
 storage rather than using anonymous volumes; the precise mounts are defined in the
-`docker-compose.yml` `volumes` section.
+`deploy/compose.yml` `volumes` section.
 
 ## .env layout for Docker deployments
 

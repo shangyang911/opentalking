@@ -185,7 +185,7 @@ Only avatars marked `custom_avatar=true` may be removed through
 
 | File | Responsibility |
 |------|---------------|
-| `opentalking/avatar/loader.py` | Manifest parsing and bundle loading. |
-| `opentalking/avatar/validator.py` | Directory traversal and strict validation. |
-| `opentalking/avatar/mouth_metadata.py` | MediaPipe mouth detection. |
-| `apps/api/routes/avatars.py` | REST endpoint implementations. |
+| `backend/opentalking/avatar/loader.py` | Manifest parsing and bundle loading. |
+| `backend/opentalking/avatar/validator.py` | Directory traversal and strict validation. |
+| `backend/opentalking/avatar/mouth_metadata.py` | MediaPipe mouth detection. |
+| `backend/apps/api/modules/avatars/router.py` | REST endpoint implementations. |

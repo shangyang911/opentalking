@@ -21,7 +21,7 @@ macOS 适合运行 Mock 模式、开发 WebUI、调试 API 和阅读文档。你
 
 ```bash
 brew install python@3.11 node ffmpeg
-uv sync --extra dev --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --python 3.11
 ```
 
 ### 不适合真实数字人模型
@@ -124,14 +124,14 @@ FFmpeg、GPU runtime 和部分 Python 包在 Windows 上更容易遇到兼容性
 
 ```bash
 export UV_DEFAULT_INDEX=https://pypi.tuna.tsinghua.edu.cn/simple
-uv sync --extra dev --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --python 3.11
 ```
 
 使用 `pip` 时可以配置：
 
 ```bash
 export PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
-pip install -e ".[dev]"
+pip install -e "./backend[dev]"
 ```
 
 ### npm 镜像源
@@ -140,7 +140,7 @@ pip install -e ".[dev]"
 
 ```bash
 npm config set registry https://registry.npmmirror.com
-cd apps/web
+cd frontend
 npm ci
 ```
 

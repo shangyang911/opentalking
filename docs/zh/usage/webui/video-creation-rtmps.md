@@ -58,10 +58,10 @@ cd "$OPENTALKING_HOME"
 
 ```bash
 cd "$OPENTALKING_HOME"
-uv sync --extra dev --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --python 3.11
 cp -n .env.example .env
 
-cd apps/web
+cd frontend
 npm ci
 cd ../..
 ```
@@ -98,7 +98,7 @@ if [[ ! -f outputs/streaming/credentials.env || ! -f outputs/streaming/mediamtx.
   .venv/bin/python scripts/streaming/prepare_mediamtx_harness.py
 fi
 
-docker compose -f docker/docker-compose.streaming-test.yml up -d
+docker compose -f deploy/docker-compose.streaming-test.yml up -d
 ```
 
 脚本会随机生成发布密码和读取密码，保存到：

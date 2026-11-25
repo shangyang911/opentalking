@@ -13,7 +13,7 @@ def load_model_paths() -> Any:
         return module
 
     repo_root = Path(__file__).resolve().parents[1]
-    module_path = repo_root / "opentalking" / "core" / "model_paths.py"
+    module_path = repo_root / "backend" / "opentalking" / "core" / "model_paths.py"
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     if spec is None or spec.loader is None:
         raise ImportError(f"Unable to load model path helpers from {module_path}")

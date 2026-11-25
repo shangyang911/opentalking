@@ -178,7 +178,7 @@ echo "  log:     $log_file"
 
 (
   cd "$repo_root"
-  export PYTHONPATH="$repo_root${PYTHONPATH:+:$PYTHONPATH}"
+  export PYTHONPATH="$repo_root/backend:$repo_root${PYTHONPATH:+:$PYTHONPATH}"
   export OPENTALKING_TTS_LOCAL_INDEXTTS_DEVICE="$device"
   setsid "$indextts_python" scripts/local_indextts_service.py --host "$host" --port "$port" >"$log_file" 2>&1 < /dev/null &
   echo "$!" >"$pid_file"

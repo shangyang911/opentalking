@@ -42,7 +42,7 @@ export OMNIRT_MODEL_ROOT="$DIGITAL_HUMAN_HOME/models"
 ### 2. Install Python dependencies
 
 ```bash title="terminal"
-uv sync --extra dev --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --python 3.11
 source .venv/bin/activate
 ```
 
@@ -54,7 +54,7 @@ If you need the compatibility fallback instead:
 ```bash title="terminal"
 python3 -m venv .venv
 source .venv/bin/activate
-pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e ".[dev]"
+pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e "./backend[dev]"
 ```
 
 Notes:
@@ -66,7 +66,7 @@ Notes:
 ### 3. Install frontend dependencies
 
 ```bash title="terminal"
-cd apps/web
+cd frontend
 npm ci
 cd ../..
 ```
@@ -120,7 +120,7 @@ uvicorn apps.unified.main:app --reload --port 8000
 The frontend is started separately:
 
 ```bash title="terminal"
-cd apps/web
+cd frontend
 npm run dev -- --host 0.0.0.0
 ```
 
@@ -344,9 +344,9 @@ To update an existing source installation:
 ```bash title="terminal"
 cd "$DIGITAL_HUMAN_HOME/opentalking"
 git pull
-uv sync --extra dev --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --python 3.11
 source .venv/bin/activate
-cd apps/web && npm ci && cd ../..
+cd frontend && npm ci && cd ../..
 ```
 
 Database schema migrations are applied automatically at process startup.
@@ -355,7 +355,7 @@ Database schema migrations are applied automatically at process startup.
 
 | Symptom | Resolution |
 |---------|------------|
-| `ModuleNotFoundError: opentalking` | Activate the virtual environment with `source .venv/bin/activate` or run `uv sync --extra dev --python 3.11`; the fallback is `pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e ".[dev]"`. |
+| `ModuleNotFoundError: opentalking` | Activate the virtual environment with `source .venv/bin/activate` or run `UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --python 3.11`; the fallback is `pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e "./backend[dev]"`. |
 | `ffmpeg: not found` during TTS decoding | Install ffmpeg. macOS: `brew install ffmpeg`. Debian/Ubuntu: `apt install ffmpeg`. |
 | `torch.cuda.is_available()` returns False | Verify the NVIDIA driver, CUDA Toolkit, and that the installed `torch` package matches the CUDA version. |
 | OmniRT exits with `CUDA out of memory` | Lower `OPENTALKING_FLASHTALK_FRAME_NUM`, `OPENTALKING_FLASHTALK_SAMPLE_STEPS`, or the output resolution. See [Configuration → FlashTalk rendering parameters](configuration.md#flashtalk-rendering-parameters). |

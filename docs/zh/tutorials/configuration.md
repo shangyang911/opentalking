@@ -3,8 +3,8 @@
 OpenTalking 从两个来源加载配置，按优先级从高到低：
 
 1. **环境变量** —— 通过 `.env` 文件或进程环境提供。
-2. **YAML 文件** —— `configs/default.yaml`，及可选叠加层 `configs/profiles/*.yaml` 与
-   `configs/synthesis/*.yaml`。
+2. **YAML 文件** —— `backend/configs/default.yaml`，及可选叠加层 `backend/configs/profiles/*.yaml` 与
+   `backend/configs/synthesis/*.yaml`。
 
 参考模板 `.env.example` 划分为四层，分别对应不同部署场景，按需要配置对应小节即可。
 
@@ -194,12 +194,12 @@ OPENTALKING_TTS_ELEVENLABS_MODEL_ID=eleven_flash_v2_5
 
 ## YAML 配置
 
-YAML 配置层提供结构化默认值。运行时加载 `configs/default.yaml`，再叠加
+YAML 配置层提供结构化默认值。运行时加载 `backend/configs/default.yaml`，再叠加
 `OPENTALKING_CONFIG_FILE` 指向的文件。
 
-### `configs/default.yaml` 顶层 key
+### `backend/configs/default.yaml` 顶层 key
 
-```yaml title="configs/default.yaml（节选）"
+```yaml title="backend/configs/default.yaml（节选）"
 api:
   host: 0.0.0.0
   port: 8000
@@ -234,7 +234,7 @@ models:
 
 ### 硬件 profile
 
-`configs/profiles/` 提供四个预设：
+`backend/configs/profiles/` 提供四个预设：
 
 - `cpu-demo.yaml` —— 仅编排，mock 合成。
 - `cuda-3090.yaml` —— 单 GPU 上的 wav2lip 与 musetalk。
@@ -244,13 +244,13 @@ models:
 应用 profile：
 
 ```bash title="终端"
-export OPENTALKING_CONFIG_FILE=./configs/profiles/cuda-3090.yaml
+export OPENTALKING_CONFIG_FILE=backend/configs/profiles/cuda-3090.yaml
 opentalking-unified
 ```
 
 ### 合成模型专属调参
 
-`configs/synthesis/` 下的文件仅覆盖 `models.<name>` 子树，无需重复完整默认配置。
+`backend/configs/synthesis/` 下的文件仅覆盖 `models.<name>` 子树，无需重复完整默认配置。
 
 ## 优先级总结
 
@@ -259,7 +259,7 @@ opentalking-unified
 1. Shell 环境变量。
 2. `.env` 文件中的变量。
 3. `OPENTALKING_CONFIG_FILE` 指向的 YAML 文件。
-4. `configs/default.yaml`。
+4. `backend/configs/default.yaml`。
 
 !!! note "变更须重启"
     所有配置值在进程启动时读取一次。配置变更须重启相关进程方可生效。

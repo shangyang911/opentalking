@@ -210,7 +210,7 @@ PY
     export OPENTALKING_QUICKTALK_DEVICE="$quicktalk_mac_device"
     export OPENTALKING_TORCH_DEVICE="$quicktalk_mac_device"
     echo "Apple Silicon QuickTalk local defaults: OPENTALKING_QUICKTALK_DEVICE=$quicktalk_mac_device"
-    echo "Install macOS QuickTalk dependencies with: uv sync --extra dev --extra models --extra quicktalk-cpu --python 3.11"
+    echo "Install macOS QuickTalk dependencies with: UV_PROJECT_ENVIRONMENT=\"$script_dir/../.venv\" uv sync --project \"$script_dir/../backend\" --extra dev --extra models --extra quicktalk-cpu --python 3.11"
   fi
 fi
 

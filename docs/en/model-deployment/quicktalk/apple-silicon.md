@@ -22,7 +22,7 @@ export PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
 export UV_HTTP_TIMEOUT=300
 export UV_LINK_MODE=copy
 
-uv sync --extra dev --extra models --extra quicktalk-cpu --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --extra quicktalk-cpu --python 3.11
 source .venv/bin/activate
 ```
 

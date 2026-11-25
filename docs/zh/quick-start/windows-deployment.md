@@ -318,7 +318,7 @@ export OPENTALKING_MODEL_ROOT="${OPENTALKING_MODEL_ROOT:-$DIGITAL_HUMAN_HOME/mod
 export OPENTALKING_QUICKTALK_ASSET_ROOT="${OPENTALKING_QUICKTALK_ASSET_ROOT:-$OPENTALKING_MODEL_ROOT/quicktalk}"
 
 cd "$OPENTALKING_HOME"
-uv sync --extra dev --extra models --extra quicktalk-cuda --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --extra quicktalk-cuda --python 3.11
 
 export OPENTALKING_TORCH_DEVICE="${OPENTALKING_TORCH_DEVICE:-cuda:0}"
 export OPENTALKING_MODEL_ROOT="${OPENTALKING_MODEL_ROOT:-$DIGITAL_HUMAN_HOME/models}"
@@ -523,7 +523,7 @@ QUICKTALK_BENCH_TEMPLATE_VIDEO="${QUICKTALK_BENCH_TEMPLATE_VIDEO:-$(find "$OPENT
 test -f "$QUICKTALK_BENCH_TEMPLATE_VIDEO"
 
 ffmpeg -y -hide_banner -loglevel error \
-  -i configs/benchmark/input/ttsmaker-file.mp3 \
+  -i backend/configs/benchmark/input/ttsmaker-file.mp3 \
   -ac 1 -ar 16000 -sample_fmt s16 \
   "$DIGITAL_HUMAN_HOME/run/quicktalk-bench/input.wav"
 

@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 HTTP_METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE"}
 
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "backend"))
 
 from apps.api.main import create_app
 

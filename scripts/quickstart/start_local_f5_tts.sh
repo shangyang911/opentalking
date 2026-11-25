@@ -158,7 +158,7 @@ echo "  log:     $log_file"
 
 (
   cd "$repo_root"
-  export PYTHONPATH="$repo_root${PYTHONPATH:+:$PYTHONPATH}"
+  export PYTHONPATH="$repo_root/backend:$repo_root${PYTHONPATH:+:$PYTHONPATH}"
   export OPENTALKING_TTS_LOCAL_F5_TTS_PRELOAD="${OPENTALKING_TTS_LOCAL_F5_TTS_PRELOAD:-1}"
   if declare -F quickstart_detach >/dev/null 2>&1; then
     quickstart_detach "$log_file" "$f5_python" scripts/local_f5_tts_service.py --host "$host" --port "$port" >"$pid_file"

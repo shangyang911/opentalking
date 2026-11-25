@@ -179,7 +179,7 @@ curl -s -X POST "http://localhost:8000/sessions/$SID/speak" \
 - `POST /sessions/{session_id}/customize/prompt` —— 替换会话的 system prompt。
 - `POST /sessions/{session_id}/customize/reference` —— 设置音色延续用的参考音频。
 
-schema 定义于 `apps/api/routes/sessions.py`。最新请求体与校验规则以源码为准。
+schema 定义于 `backend/apps/api/modules/conversation/sessions.py`。最新请求体与校验规则以源码为准。
 
 ## 直接音频输入
 
@@ -308,7 +308,7 @@ MP4 文件。
 
 ## 源文件
 
-- `apps/api/routes/sessions.py` —— 端点实现。
-- `apps/api/schemas/session.py` —— `CreateSessionRequest`、`CreateSessionResponse`、`SpeakRequest`、`ChatRequest`、`WebRTCOfferRequest`。
-- `opentalking/runtime/` —— 处理 `speak`、`transcribe`、`interrupt` 的流水线驱动。
+- `backend/apps/api/modules/conversation/sessions.py` —— 端点实现。
+- `backend/apps/api/modules/conversation/schemas.py` —— `CreateSessionRequest`、`CreateSessionResponse`、`SpeakRequest`、`ChatRequest`、`WebRTCOfferRequest`。
+- `backend/opentalking/runtime/` —— 处理 `speak`、`transcribe`、`interrupt` 的流水线驱动。
 - `opentalking/rtc/` —— `/webrtc/offer` 调用的 WebRTC track 管理。

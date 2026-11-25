@@ -14,7 +14,7 @@ if [ ! -d "$OPENTALKING_HOME/.git" ]; then
 fi
 
 cd "$OPENTALKING_HOME"
-uv sync --extra dev --extra models --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --python 3.11
 source .venv/bin/activate
 ```
 

@@ -19,7 +19,7 @@ architecture-v2 所做的改动。迁移后的职责边界是：OpenTalking 负�
 - 扩展 avatar manifest，为内置资产和自定义资产记录 Wav2Lip 所需的嘴部
   metadata，包括 mouth polygon、mouth center/radius、face box、source image
   hash。
-- 新增 `opentalking/avatar/mouth_metadata.py`，在创建或更新 avatar 参考图时，
+- 新增 `backend/opentalking/avatar/mouth_metadata.py`，在创建或更新 avatar 参考图时，
   使用 MediaPipe 自动检测嘴部 landmark 并写入 manifest。
 - 自定义形象上传会创建新的 avatar 资产目录，写入 `preview.png`、
   `reference.png`，并为 Wav2Lip 资产同步写入首帧。

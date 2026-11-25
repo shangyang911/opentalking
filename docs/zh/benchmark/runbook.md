@@ -2,12 +2,12 @@
 
 ## QuickTalk 本地 adapter
 
-仓库提供 `apps/cli/quicktalk_bench.py`，用于直接测 QuickTalk 本地 adapter 的加载、首帧、
+仓库提供 `backend/apps/cli/quicktalk_bench.py`，用于直接测 QuickTalk 本地 adapter 的加载、首帧、
 渲染和 mux 时间。
 
 ```bash title="终端"
 source .venv/bin/activate
-python apps/cli/quicktalk_bench.py \
+python backend/apps/cli/quicktalk_bench.py \
   --asset-root /path/to/quicktalk/assets \
   --template-video /path/to/template.mp4 \
   --audio /path/to/input.wav \

@@ -58,7 +58,7 @@ SenseVoiceSmall uses the local FunASR adapter and supports both uploaded audio a
 Download the weights:
 
 ```bash title="terminal"
-uv sync --extra dev --extra models --extra local-audio --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --extra local-audio --python 3.11
 python scripts/download_local_audio_models.py \
   --root ./avatar_models/local-audio \
   --model sensevoice-small

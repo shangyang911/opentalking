@@ -18,7 +18,7 @@ Authorization: Bearer $OPENTALKING_STREAMING_CONTROL_TOKEN
 cd /path/to/opentalking
 bash scripts/streaming/generate_test_pki.sh outputs/streaming/tls
 .venv/bin/python scripts/streaming/prepare_mediamtx_harness.py
-docker compose -f docker/docker-compose.streaming-test.yml up -d
+docker compose -f deploy/docker-compose.streaming-test.yml up -d
 set -a; . outputs/streaming/credentials.env; set +a
 ```
 
@@ -135,7 +135,7 @@ ffprobe -v error -show_streams -show_packets -show_frames -of json \
 ## 停止 harness
 
 ```bash
-docker compose -f docker/docker-compose.streaming-test.yml down -v
+docker compose -f deploy/docker-compose.streaming-test.yml down -v
 ```
 
 接收脚本从 `OPENTALKING_HARNESS_READ_USERNAME`、`OPENTALKING_HARNESS_READ_PASSWORD` 和 `OPENTALKING_HARNESS_WHEP_TOKEN` 读取临时凭据；不要把凭据拼进 URL 或命令行。测试账号、证书私钥、capture 和 `.env` 均不得提交到 Git。

@@ -237,7 +237,7 @@ async def stream_audio(session_id: str, pcm_chunks):
 
 ## 源文件
 
-- `apps/api/routes/events.py` —— SSE 端点。
-- `apps/api/routes/sessions.py` —— `speak_audio_stream` WebSocket 端点。
-- `opentalking/core/events.py` —— 事件 schema。
-- `opentalking/core/bus.py` —— pub/sub 总线。
+- `backend/apps/api/modules/conversation/events.py` —— SSE 端点。
+- `backend/apps/api/modules/conversation/sessions.py` —— `speak_audio_stream` WebSocket 端点。
+- `backend/opentalking/core/events.py` —— 事件 schema。
+- `backend/opentalking/core/bus.py` —— pub/sub 总线。

@@ -86,11 +86,11 @@ Week 4 (5/22-5/30)   M4: 多硬件 + 完整 demo       [对外第三轮 + Hacker
     - 默认轻量路径下载量 < 1GB，可在 5 分钟内完成首次启动
     - 用户后续可独立执行 download_flashtalk.sh 升级到高质量路径，无需重装
 - [ ] **Docker 镜像矩阵（与 install.sh 配合）**
-  - 交付：`docker/Dockerfile.unified-cuda`、`Dockerfile.unified-ascend`、`Dockerfile.unified-cpu` 推送至 ghcr.io
+  - 交付：`deploy/Dockerfile.unified-cuda`、`Dockerfile.unified-ascend`、`Dockerfile.unified-cpu` 推送至 ghcr.io
   - 镜像 tag 规范：`opentalking/unified:cuda-v0.1.0`、`unified:ascend-v0.1.0`、`unified:cpu-v0.1.0`
   - 验收：`docker run` 三个镜像均能启动 unified 服务并响应 health；install.sh docker 路径能正确选择
 - [ ] **硬件 profile 配置框架**
-  - 交付：`configs/profiles/{cuda-3090,cuda-4090,ascend-910b,cpu-demo}.yaml`，启动时通过 `OPENTALKING_HARDWARE_PROFILE` 选择，未指定时由 install.sh 写入默认值
+  - 交付：`backend/configs/profiles/{cuda-3090,cuda-4090,ascend-910b,cpu-demo}.yaml`，启动时通过 `OPENTALKING_HARDWARE_PROFILE` 选择，未指定时由 install.sh 写入默认值
   - 验收：4 个 profile 在 README 文档化，启动时打印当前 profile 与降级原因
 
 #### 工程 2（Model & Agent）
@@ -130,7 +130,7 @@ Week 4 (5/22-5/30)   M4: 多硬件 + 完整 demo       [对外第三轮 + Hacker
   - 交付：[docs/design/wireframes.md](https://github.com/datascale-ai/opentalking/blob/main/docs/design/wireframes.md) + Figma / Excalidraw 链接（可选）
   - 验收：3 位工程师 + 1 位宣传都能看懂页面流程
 - [ ] **角色配置 UI 骨架**（设计 review 通过后开始）
-  - 交付：[apps/web/src/pages/PersonaConfig.tsx](https://github.com/datascale-ai/opentalking/blob/main/apps/web/src/pages/PersonaConfig.tsx)，包含角色列表、新建、编辑、删除四个基础页面
+  - 交付：[frontend/src/pages/PersonaConfig.tsx](https://github.com/datascale-ai/opentalking/blob/main/frontend/src/pages/PersonaConfig.tsx)，包含角色列表、新建、编辑、删除四个基础页面
   - 验收：前端访问 `/personas` 可 CRUD 操作（后端 API mock 即可）
 - [ ] **默认音色库（preset voices）**
   - 交付：6-12 个 preset voice（覆盖中文男女声 / 英文男女声 / 活泼 / 沉稳）配置文件 + 试听样音

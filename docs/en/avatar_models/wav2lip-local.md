@@ -6,7 +6,7 @@ Use this path when you want to validate a lighter lip-sync effect on a single co
 
 ```bash
 cd "$DIGITAL_HUMAN_HOME/opentalking"
-uv sync --extra dev --extra models --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --python 3.11
 source .venv/bin/activate
 ```
 

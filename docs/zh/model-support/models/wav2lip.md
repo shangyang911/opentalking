@@ -91,7 +91,7 @@ uv run python scripts/prepare_wav2lip_video_asset.py \
 
 ### 口型平滑参数
 
-这些参数来自模型 runtime config，可写在 `configs/default.yaml` 的 `models.wav2lip` 下，或用环境变量覆盖：
+这些参数来自模型 runtime config，可写在 `backend/configs/default.yaml` 的 `models.wav2lip` 下，或用环境变量覆盖：
 
 | 配置项 | 环境变量 | 默认值 | 作用 |
 | --- | --- | --- | --- |

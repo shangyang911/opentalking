@@ -64,7 +64,7 @@ OPENTALKING_STT_DASHSCOPE_API_KEY=<dashscope-or-internal-token>
 OMNIRT_ENDPOINT=http://omnirt.internal.example.com:9000
 ```
 
-```yaml title="configs/default.yaml"
+```yaml title="backend/configs/default.yaml"
 models:
   flashtalk:
     backend: omnirt

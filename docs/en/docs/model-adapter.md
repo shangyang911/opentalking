@@ -8,7 +8,7 @@ integration path for adding a synthesis model.
 
 ## The `ModelAdapter` protocol
 
-Source: `opentalking/core/interfaces/model_adapter.py`.
+Source: `backend/opentalking/core/interfaces/model_adapter.py`.
 
 ```python
 from typing import Any, Protocol, runtime_checkable
@@ -50,7 +50,7 @@ the method signatures is accepted. The `runtime_checkable` decorator enables
 
 ## Registration
 
-Source: `opentalking/models/registry.py`.
+Source: `backend/opentalking/models/registry.py`.
 
 ```python
 from opentalking.models.registry import register_model
@@ -69,8 +69,8 @@ triggered by `ensure_models_imported()`, which runs on first lookup.
 
 To make a new local adapter discoverable:
 
-1. Place the class in a module under `opentalking/models/<name>/adapter.py`.
-2. Import the module from `ensure_models_imported()` in `opentalking/models/registry.py`.
+1. Place the class in a module under `backend/opentalking/models/<name>/adapter.py`.
+2. Import the module from `ensure_models_imported()` in `backend/opentalking/models/registry.py`.
 3. Set `models.<name>.backend: local` in YAML or `OPENTALKING_<NAME>_BACKEND=local`.
 4. Restart the server. The new model appears in the `GET /models` response with
    `backend: local`; it is `connected=true` only after the adapter imports cleanly.
@@ -78,12 +78,12 @@ To make a new local adapter discoverable:
 ## Backend resolver
 
 OpenTalking does not assume that every real model runs on OmniRT. At session creation,
-the pipeline resolves `model + backend` through `opentalking/providers/synthesis/backends.py`:
+the pipeline resolves `model + backend` through `backend/opentalking/providers/synthesis/backends.py`:
 
 | backend | Runtime path | Availability rule |
 |---------|--------------|-------------------|
 | `mock` | Built-in mock synthesis client. | Always connected. |
-| `local` | `ModelAdapter` loaded from `opentalking/models/<name>/`. | Connected when `get_adapter(name)` succeeds. |
+| `local` | `ModelAdapter` loaded from `backend/opentalking/models/<name>/`. | Connected when `get_adapter(name)` succeeds. |
 | `direct_ws` | Model-specific WebSocket URL from YAML or settings. | Connected when a WebSocket URL is configured. |
 | `omnirt` | `/v1/audio2video/{model}` on the configured OmniRT endpoint. | Connected when OmniRT reports the model. |
 
@@ -109,7 +109,7 @@ and session creation fails clearly instead of falling back to OmniRT.
 The following adapter produces a frame whose brightness is proportional to the audio
 energy. It serves as a minimal template.
 
-```python title="opentalking/models/echo/adapter.py"
+```python title="backend/opentalking/models/echo/adapter.py"
 from __future__ import annotations
 from pathlib import Path
 from typing import Any
@@ -163,7 +163,7 @@ class EchoAdapter:
 
 Register the adapter:
 
-```python title="opentalking/models/registry.py (diff)"
+```python title="backend/opentalking/models/registry.py (diff)"
 def ensure_models_imported() -> None:
     import opentalking.models.quicktalk.adapter  # noqa: F401
     import opentalking.models.echo.adapter       # noqa: F401  # added
@@ -189,7 +189,7 @@ frontend. The output frame brightness varies with the input audio amplitude.
 
 ## Reference implementation: QuickTalk adapter
 
-A production-quality example resides at `opentalking/models/quicktalk/`:
+A production-quality example resides at `backend/opentalking/models/quicktalk/`:
 
 - `adapter.py` — implements the protocol and delegates to a `QuickTalkRuntime`.
 - `runtime.py` — V1 runtime with in-process inference and face cache.
@@ -200,7 +200,7 @@ protocol concerns; the runtime handles model loading and inference details.
 
 ## Remote and direct backends
 
-Remote models should be integrated under `opentalking/providers/synthesis/`, not as
+Remote models should be integrated under `backend/opentalking/providers/synthesis/`, not as
 fake local adapters. Use the following rule of thumb:
 
 | Model shape | Recommended backend |
@@ -219,10 +219,10 @@ prefer explicit `backend: direct_ws` or `backend: omnirt`.
 
 | File | Responsibility |
 |------|---------------|
-| `opentalking/core/interfaces/model_adapter.py` | The `ModelAdapter` protocol definition. |
-| `opentalking/core/types/frames.py` | `AudioChunk` and `VideoFrameData` types. |
-| `opentalking/core/model_config.py` | Per-model backend defaults, YAML overrides, and `OPENTALKING_<MODEL>_BACKEND`. |
-| `opentalking/models/registry.py` | `@register_model`, `get_adapter`, `list_models`. |
-| `opentalking/models/quicktalk/` | Reference local adapter implementation. |
-| `opentalking/providers/synthesis/backends.py` | Resolves the selected backend and direct WebSocket URL for a model. |
-| `opentalking/providers/synthesis/availability.py` | Resolves the set of usable models given the current environment. |
+| `backend/opentalking/core/interfaces/model_adapter.py` | The `ModelAdapter` protocol definition. |
+| `backend/opentalking/core/types/frames.py` | `AudioChunk` and `VideoFrameData` types. |
+| `backend/opentalking/core/model_config.py` | Per-model backend defaults, YAML overrides, and `OPENTALKING_<MODEL>_BACKEND`. |
+| `backend/opentalking/models/registry.py` | `@register_model`, `get_adapter`, `list_models`. |
+| `backend/opentalking/models/quicktalk/` | Reference local adapter implementation. |
+| `backend/opentalking/providers/synthesis/backends.py` | Resolves the selected backend and direct WebSocket URL for a model. |
+| `backend/opentalking/providers/synthesis/availability.py` | Resolves the set of usable models given the current environment. |

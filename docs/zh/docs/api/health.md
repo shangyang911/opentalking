@@ -95,7 +95,7 @@ HTTP `400` 拒绝未连接模型。
 
 ## 源文件
 
-- `apps/api/routes/health.py` —— `/health`、`/healthz`、`/queue/status`。
-- `apps/api/routes/models.py` —— `/models`。
-- `opentalking/providers/synthesis/availability.py` —— `resolve_model_statuses()`。
-- `opentalking/core/queue_status.py` —— `get_flashtalk_queue_status()`。
+- `backend/apps/api/modules/system/health.py` —— `/health`、`/healthz`、`/queue/status`。
+- `backend/apps/api/modules/system/models.py` —— `/models`。
+- `backend/opentalking/providers/synthesis/availability.py` —— `resolve_model_statuses()`。
+- `backend/opentalking/core/queue_status.py` —— `get_flashtalk_queue_status()`。

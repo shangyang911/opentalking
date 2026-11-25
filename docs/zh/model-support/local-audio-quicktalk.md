@@ -60,7 +60,7 @@ OPENTALKING_TTS_DASHSCOPE_API_KEY=<dashscope-tts-key>
 ## 安装与模型
 
 ```bash title="终端"
-uv sync --extra dev --extra models --extra local-audio --extra quicktalk-cuda --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --extra local-audio --extra quicktalk-cuda --python 3.11
 python scripts/download_local_audio_models.py \
   --root ./avatar_models/local-audio \
   --model sensevoice-small \

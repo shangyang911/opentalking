@@ -32,7 +32,7 @@ stat models/wav2lip/s3fd.pth
 
 ```bash title="终端"
 cd "$DIGITAL_HUMAN_HOME/opentalking"
-uv sync --extra dev --extra models --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --python 3.11
 
 export OPENTALKING_WAV2LIP_MODEL_ROOT="$DIGITAL_HUMAN_HOME/opentalking/models/wav2lip"
 export OPENTALKING_WAV2LIP_DEVICE=cuda

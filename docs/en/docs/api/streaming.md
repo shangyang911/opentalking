@@ -18,7 +18,7 @@ The repository includes a pinned MediaMTX harness. Test credentials, short-lived
 cd /path/to/opentalking
 bash scripts/streaming/generate_test_pki.sh outputs/streaming/tls
 .venv/bin/python scripts/streaming/prepare_mediamtx_harness.py
-docker compose -f docker/docker-compose.streaming-test.yml up -d
+docker compose -f deploy/docker-compose.streaming-test.yml up -d
 set -a; . outputs/streaming/credentials.env; set +a
 ```
 
@@ -130,7 +130,7 @@ After starting `scripts/start_unified.sh`, open the “流媒体” (Streaming) 
 ## Stop the harness
 
 ```bash
-docker compose -f docker/docker-compose.streaming-test.yml down -v
+docker compose -f deploy/docker-compose.streaming-test.yml down -v
 ```
 
 The receiver scripts read temporary credentials from `OPENTALKING_HARNESS_READ_USERNAME`, `OPENTALKING_HARNESS_READ_PASSWORD`, and `OPENTALKING_HARNESS_WHEP_TOKEN`; do not embed credentials in URLs or command lines. Test credentials, private keys, captures, and `.env` files must not be committed.

@@ -263,7 +263,7 @@ export LD_LIBRARY_PATH=/opt/digital-human/omnirt/.venv310/lib/python3.10/site-pa
 export OMNIRT_FASTLIVEPORTRAIT_RUNTIME=true
 export OMNIRT_FASTLIVEPORTRAIT_ROOT=/opt/digital-human/FasterLivePortrait
 export OMNIRT_FASTLIVEPORTRAIT_CHECKPOINTS_DIR=/opt/digital-human/FasterLivePortrait/checkpoints
-export OMNIRT_FASTLIVEPORTRAIT_CFG=configs/trt_infer.yaml
+export OMNIRT_FASTLIVEPORTRAIT_CFG=backend/configs/trt_infer.yaml
 export OMNIRT_FASTLIVEPORTRAIT_LOAD_MODELS=true
 
 cd /opt/digital-human/omnirt
@@ -532,13 +532,13 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ### 5.3 前端环境
 
 ```bash
-cd apps/web
+cd frontend
 npm install
 ```
 
 ### 5.4 配置文件
 
-`configs/default.yaml` 关键配置：
+`backend/configs/default.yaml` 关键配置：
 
 ```yaml
 # 服务端口
@@ -590,7 +590,7 @@ python -m apps.unified.main
 ### 5.7 启动前端
 
 ```bash
-cd /opt/digital-human/opentalking/apps/web
+cd /opt/digital-human/opentalking/frontend
 npx vite --port 5173 --host 0.0.0.0
 ```
 
@@ -653,7 +653,7 @@ python -m apps.unified.main
 ### 终端 4：前端
 
 ```bash
-cd /opt/digital-human/opentalking/apps/web
+cd /opt/digital-human/opentalking/frontend
 npx vite --port 5173 --host 0.0.0.0
 ```
 
@@ -671,7 +671,7 @@ npx vite --port 5173 --host 0.0.0.0
 
 ### 7.1 修改 recording.py
 
-文件：`opentalking/pipeline/recording/recording.py`
+文件：`backend/opentalking/pipeline/recording/recording.py`
 
 在 `export_flashtalk_recording` 函数前添加：
 
@@ -729,7 +729,7 @@ def flush_audio_buffer(session_id: str) -> None:
 
 ### 7.2 修改 synthesis_runner.py
 
-文件：`opentalking/pipeline/speak/synthesis_runner.py`
+文件：`backend/opentalking/pipeline/speak/synthesis_runner.py`
 
 在 `_append_recording_frames_if_enabled` 方法后添加：
 
@@ -814,8 +814,8 @@ def flush_audio_buffer(session_id: str) -> None:
 | OmniRT | `/opt/digital-human/omnirt/` | 推理引擎 |
 | FasterLivePortrait | `/opt/digital-human/FasterLivePortrait/` | 模型代码 + TRT 引擎 |
 | OpenTalking 后端 | `/opt/digital-human/opentalking/` | 编排 + API |
-| OpenTalking 前端 | `/opt/digital-human/opentalking/apps/web/` | Vue 前端 |
+| OpenTalking 前端 | `/opt/digital-human/opentalking/frontend/` | Vue 前端 |
 | FLP 合成配置 | `opentalking/configs/synthesis/fasterliveportrait.yaml` | 运动幅度等参数 |
 | FlashHead 配置 | `opentalking/configs/default.yaml` | ws_url 等 |
-| 录制模块 | `opentalking/pipeline/recording/recording.py` | 需打音频补丁 |
+| 录制模块 | `backend/opentalking/pipeline/recording/recording.py` | 需打音频补丁 |
 | TRT 推理配置 | `FasterLivePortrait/configs/trt_infer.yaml` | TRT 引擎路径 |

@@ -188,7 +188,7 @@ Endpoints for runtime persona customization:
 - `POST /sessions/{session_id}/customize/reference` — sets a reference audio for
   voice continuity.
 
-The schemas are defined in `apps/api/routes/sessions.py`. Refer to the source for the
+The schemas are defined in `backend/apps/api/modules/conversation/sessions.py`. Refer to the source for the
 current request bodies and validation rules.
 
 ## Direct audio input
@@ -323,7 +323,7 @@ Downloads the rendered MP4 once `status=complete`. Response Content-Type is
 
 ## Source files
 
-- `apps/api/routes/sessions.py` — endpoint implementations.
-- `apps/api/schemas/session.py` — `CreateSessionRequest`, `CreateSessionResponse`, `SpeakRequest`, `ChatRequest`, `WebRTCOfferRequest`.
-- `opentalking/runtime/` — the pipeline driver that handles `speak`, `transcribe`, and `interrupt`.
+- `backend/apps/api/modules/conversation/sessions.py` — endpoint implementations.
+- `backend/apps/api/modules/conversation/schemas.py` — `CreateSessionRequest`, `CreateSessionResponse`, `SpeakRequest`, `ChatRequest`, `WebRTCOfferRequest`.
+- `backend/opentalking/runtime/` — the pipeline driver that handles `speak`, `transcribe`, and `interrupt`.
 - `opentalking/rtc/` — WebRTC track management invoked by `/webrtc/offer`.

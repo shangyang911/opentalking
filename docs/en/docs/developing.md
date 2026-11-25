@@ -21,7 +21,7 @@ opentalking/
 │   ├── unified/          # Single-process entry point
 │   ├── cli/              # Command-line utilities
 │   └── web/              # React frontend (TypeScript, Vite)
-├── configs/              # default.yaml, profiles/*, synthesis/*
+├── backend/configs/              # default.yaml, profiles/*, synthesis/*
 ├── scripts/quickstart/   # Start and stop helpers
 ├── examples/avatars/     # Sample avatar bundles
 ├── tests/                # pytest suite
@@ -33,14 +33,14 @@ opentalking/
 ```bash title="terminal"
 git clone https://github.com/datascale-ai/opentalking.git
 cd opentalking
-uv sync --extra dev --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --python 3.11
 source .venv/bin/activate
 pre-commit install
 ```
 
 The `[dev]` extra installs `ruff`, `pytest`, `pytest-asyncio`, `pytest-cov`, and
 related development dependencies. If you need the compatibility fallback instead,
-use `python3 -m venv .venv && source .venv/bin/activate && pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e ".[dev]"`.
+use `python3 -m venv .venv && source .venv/bin/activate && pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e "./backend[dev]"`.
 
 ## Running locally
 
@@ -68,7 +68,7 @@ uvicorn apps.unified.main:app --reload --port 8000
 Frontend in a separate terminal:
 
 ```bash title="terminal"
-cd apps/web && npm ci && npm run dev -- --host 0.0.0.0
+cd frontend && npm ci && npm run dev -- --host 0.0.0.0
 ```
 
 Vite hot module replacement is enabled by default; backend changes require a restart
@@ -113,7 +113,7 @@ python -m apps.worker.main --port 9001
 ```
 
 ```bash title="terminal: frontend"
-cd apps/web && npm run dev -- --host 0.0.0.0
+cd frontend && npm run dev -- --host 0.0.0.0
 ```
 
 Four processes run concurrently. Use `redis-cli MONITOR` to inspect bus traffic.
@@ -123,7 +123,7 @@ Four processes run concurrently. Use `redis-cli MONITOR` to inspect bus traffic.
 When the backend is already running on a separate host:
 
 ```bash title="terminal"
-cd apps/web
+cd frontend
 export VITE_BACKEND_URL=http://teammate-host:8000
 npm run dev -- --host 0.0.0.0
 ```
@@ -210,7 +210,7 @@ The complete endpoint surface is documented in the [API interfaces](api/index.md
 
 | Symptom | Likely cause |
 |---------|--------------|
-| `ModuleNotFoundError: opentalking` | `uv sync --extra dev --python 3.11` was not run, or the compatibility fallback `pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e ".[dev]"` was skipped. |
+| `ModuleNotFoundError: opentalking` | `UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --python 3.11` was not run, or the compatibility fallback `pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e "./backend[dev]"` was skipped. |
 | Browser reports WebRTC is unavailable | The browser blocks WebRTC on non-HTTPS, non-localhost origins. |
 | Worker logs `redis connection refused` | Switch to unified mode or start `redis-server`. |
 | A test hangs at `await ws.send_text()` | `OPENTALKING_TEST_LIVE` is set and the live service is unreachable. |

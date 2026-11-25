@@ -35,8 +35,9 @@ def _load_voice_assets_module():
         return module
     repo_root = Path(__file__).resolve().parents[1]
     if str(repo_root) not in sys.path:
-        sys.path.insert(0, str(repo_root))
-    module_path = repo_root / "opentalking" / "providers" / "tts" / "voice_assets.py"
+        sys.path.insert(0, str(repo_root / "backend"))
+    sys.path.insert(0, str(repo_root))
+    module_path = repo_root / "backend" / "opentalking" / "providers" / "tts" / "voice_assets.py"
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     if spec is None or spec.loader is None:
         raise ImportError(f"Unable to load voice assets module from {module_path}")

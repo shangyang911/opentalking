@@ -6,7 +6,7 @@
 
 ```bash
 cd "$DIGITAL_HUMAN_HOME/opentalking"
-uv sync --extra dev --extra models --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --python 3.11
 source .venv/bin/activate
 ```
 

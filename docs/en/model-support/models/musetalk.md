@@ -72,7 +72,7 @@ MuseTalk realtime inference. Official preprocessing is executed through
 
 OmniRT path:
 
-```yaml title="configs/default.yaml"
+```yaml title="backend/configs/default.yaml"
 models:
   musetalk:
     backend: omnirt
@@ -80,7 +80,7 @@ models:
 
 Local path:
 
-```yaml title="configs/default.yaml"
+```yaml title="backend/configs/default.yaml"
 models:
   musetalk:
     backend: local

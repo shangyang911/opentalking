@@ -1,5 +1,7 @@
 # 视频生成过程中分片发布 RTMPS：执行文档
 
+> 当前本地演示版已移除推流界面与公开 API；本文保留上游历史执行记录，不代表当前演示版的功能或启动要求。当前范围见[本地演示版](../../usage/local-demo.md)。
+
 > 文档状态：已实现，可直接执行。本文对应当前分支的分片生成、异步 VideoCreationJob、独立 RTMPS job API 和 Studio 前端。
 >
 > 重要：本链路的 WebUI 端口是 `5280`，API 端口是 `8210`；`5180` 不属于本测试配置。密码/token 不写入本文，按第 3 节从本机 `credentials.env` 读取。
@@ -78,8 +80,8 @@ set -a
 . outputs/streaming/credentials.env
 set +a
 
-docker compose -f docker/docker-compose.streaming-test.yml up -d
-docker compose -f docker/docker-compose.streaming-test.yml ps
+docker compose -f deploy/docker-compose.streaming-test.yml up -d
+docker compose -f deploy/docker-compose.streaming-test.yml ps
 ```
 
 API/WebUI 的启动和端口检查见第 7.1 节；如果服务还没启动，此处不应提前执行 `curl 8210/5280`。
@@ -142,7 +144,7 @@ password: OPENTALKING_HARNESS_READ_PASSWORD 的值
 
 ### 4.1 `MediaChunk`
 
-实现位于 `opentalking/streaming/chunks.py`，当前字段如下：
+实现位于 `backend/opentalking/streaming/chunks.py`，当前字段如下：
 
 ```python
 @dataclass(frozen=True, slots=True)
@@ -224,7 +226,7 @@ audio: AAC / 48 kHz / mono 或 stereo（按输入配置）
 
 ### 阶段 A：分片基础设施（已实现）
 
-实现文件为 `opentalking/streaming/chunks.py`：
+实现文件为 `backend/opentalking/streaming/chunks.py`：
 
 1. 实现 `MediaChunk`、`ChunkEOF`、`ChunkFailure`。
 2. `VideoCreationChunkSink` 使用 `publish(chunk)`、`finish()`、`fail(code, detail)`。
@@ -234,18 +236,18 @@ audio: AAC / 48 kHz / mono 或 stereo（按输入配置）
 测试文件：
 
 ```text
-tests/unit/test_media_chunks.py
+backend/tests/unit/test_media_chunks.py
 ```
 
 验收命令：
 
 ```bash
-.venv/bin/pytest tests/unit/test_media_chunks.py -q
+.venv/bin/pytest backend/tests/unit/test_media_chunks.py -q
 ```
 
 ### 阶段 B：独立的 `ChunkedRTMPSPublisher`（已实现）
 
-新增 `opentalking/streaming/destinations/rtmps_chunked.py`，不要把它直接塞进现有实时 `RTMPSPublisher`。
+新增 `backend/opentalking/streaming/destinations/rtmps_chunked.py`，不要把它直接塞进现有实时 `RTMPSPublisher`。
 
 #### B.1 连接生命周期
 
@@ -290,7 +292,7 @@ reconnecting --超过重试次数--> failed
 对应测试文件：
 
 ```text
-tests/unit/test_rtmps_chunked_publisher.py
+backend/tests/unit/test_rtmps_chunked_publisher.py
 ```
 
 ### 阶段 C：`VideoCreationService` 分片接入（已实现）
@@ -412,7 +414,7 @@ DELETE /video-creation/jobs/{job_id}
 
 ### 阶段 E：视频创作 RTMPS job API（已实现）
 
-路由实现位于 `apps/api/routes/rtmps_jobs.py`，鉴权复用 streaming control token。
+路由实现位于 `backend/apps/api/modules/rtmps_jobs.py`，鉴权复用 streaming control token。
 
 #### E.1 创建
 
@@ -519,8 +521,8 @@ video_export_failed
 修改：
 
 ```text
-apps/web/src/lib/api.ts
-apps/web/src/components/VideoCreationWorkspace.tsx
+frontend/src/shared/api/client.ts
+frontend/src/features/video-creation/VideoCreationWorkspace.tsx
 ```
 
 前端操作顺序必须是：
@@ -551,12 +553,12 @@ apps/web/src/components/VideoCreationWorkspace.tsx
 cd "$OPENTALKING_HOME"
 
 .venv/bin/pytest \
-  tests/unit/test_media_chunks.py \
-  tests/unit/test_rtmps_chunked_publisher.py \
-  tests/unit/test_rtmps_destination.py \
-  tests/unit/test_whip_publisher.py \
-  tests/unit/test_whip_sdp.py \
-  tests/unit/test_media_assertions.py \
+  backend/tests/unit/test_media_chunks.py \
+  backend/tests/unit/test_rtmps_chunked_publisher.py \
+  backend/tests/unit/test_rtmps_destination.py \
+  backend/tests/unit/test_whip_publisher.py \
+  backend/tests/unit/test_whip_sdp.py \
+  backend/tests/unit/test_media_assertions.py \
   -q
 ```
 
@@ -574,9 +576,9 @@ cd "$OPENTALKING_HOME"
 
 ```bash
 .venv/bin/pytest \
-  apps/api/tests/test_video_creation.py \
-  apps/api/tests/test_video_creation_async.py \
-  apps/api/tests/test_session_outputs.py \
+  backend/tests/api/test_video_creation.py \
+  backend/tests/api/test_video_creation_async.py \
+  backend/tests/api/test_session_outputs.py \
   -q
 ```
 
@@ -591,7 +593,7 @@ cd "$OPENTALKING_HOME"
 ### 6.3 前端静态检查
 
 ```bash
-cd "$OPENTALKING_HOME/apps/web"
+cd "$OPENTALKING_HOME/frontend"
 npm run typecheck
 npm run build
 ```
@@ -621,7 +623,7 @@ export OPENTALKING_STREAMING_TEST_AUTH_BYPASS=1
 export OPENTALKING_STREAMING_RTMPS_CA_FILE="$PWD/outputs/streaming/tls/ca.crt"
 export OPENTALKING_STREAMING_WHIP_CA_FILE="$PWD/outputs/streaming/tls/ca.crt"
 
-docker compose -f docker/docker-compose.streaming-test.yml up -d
+docker compose -f deploy/docker-compose.streaming-test.yml up -d
 bash scripts/start_unified.sh --mock --api-port 8210 --web-port 5280
 
 curl -fsS http://127.0.0.1:8210/health >/dev/null
@@ -849,7 +851,7 @@ HLS 是直播播放链路。MediaMTX 使用标准 fMP4 HLS、1 秒 segment 和 3
 
 ```bash
 # 停止并删除本地 MediaMTX harness 容器；不会删除代码。
-docker compose -f docker/docker-compose.streaming-test.yml down -v
+docker compose -f deploy/docker-compose.streaming-test.yml down -v
 
 # 删除本次临时 capture 和状态文件。
 rm -rf /tmp/chunked-rtmps-capture /tmp/video-job.json /tmp/video-job-status.json /tmp/rtmps-job.json

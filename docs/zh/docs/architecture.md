@@ -16,10 +16,10 @@ backend 边界。
 ```mermaid
 flowchart TB
     subgraph 前端
-      Web[apps/web<br/>React + Vite]
+      Web[frontend<br/>React + Vite]
     end
     subgraph "OpenTalking 服务"
-      API[apps/api<br/>FastAPI 路由<br/>会话状态]
+      API[backend/apps/api<br/>FastAPI 路由<br/>会话状态]
       Worker[opentalking.runtime<br/>Worker 服务<br/>流水线驱动]
       Bus[(Redis<br/>或内存)]
     end
@@ -42,11 +42,11 @@ flowchart TB
 
 | 组件 | 职责 | 源码 |
 |------|------|------|
-| `apps/api` | HTTP 与 WebSocket 入口、会话 CRUD、WebRTC 信令、SSE 事件流。 | `apps/api/routes/` |
-| `opentalking-worker` | 驱动一个或多个会话执行渲染管线。 | `opentalking/runtime/main.py`、`opentalking/runtime/task_consumer.py`、`opentalking/runtime/server.py` |
-| `apps/unified` | 单进程组合 API、Worker 与内存总线，面向开发场景。 | `apps/unified/main.py` |
+| `backend/apps/api` | HTTP 与 WebSocket 入口、会话 CRUD、WebRTC 信令、SSE 事件流。 | `backend/apps/api/modules/` |
+| `opentalking-worker` | 驱动一个或多个会话执行渲染管线。 | `backend/opentalking/runtime/main.py`、`backend/opentalking/runtime/task_consumer.py`、`backend/opentalking/runtime/server.py` |
+| `backend/apps/unified` | 单进程组合 API、Worker 与内存总线，面向开发场景。 | `backend/apps/unified/main.py` |
 | `opentalking/` 库 | Provider、适配器、接口、类型、配置、总线与流水线代码。 | `opentalking/`（flat layout） |
-| 合成 backend | 由 backend resolver 按模型选择：`mock`、`local`、`direct_ws`、`omnirt`。 | `opentalking/providers/synthesis/` |
+| 合成 backend | 由 backend resolver 按模型选择：`mock`、`local`、`direct_ws`、`omnirt`。 | `backend/opentalking/providers/synthesis/` |
 | OmniRT（外部） | 当模型使用 `backend: omnirt` 时承载重模型、多卡、GPU/NPU 与远端推理。 | [datascale-ai/omnirt](https://github.com/datascale-ai/omnirt) |
 | Redis（外部） | API 与 Worker 之间的 pub/sub 总线。 | unified 模式可省略。 |
 
@@ -56,15 +56,15 @@ flowchart TB
 flowchart LR
     subgraph "拓扑 A：Unified"
       direction TB
-      U[apps/unified]
+      U[backend/apps/unified]
     end
     subgraph "拓扑 B：API + Worker"
       direction TB
-      Aa[apps/api] --- Rr[(Redis)] --- Ww[opentalking-worker]
+      Aa[backend/apps/api] --- Rr[(Redis)] --- Ww[opentalking-worker]
     end
     subgraph "拓扑 C：API + 多 Worker"
       direction TB
-      Ab[apps/api] --- Rb[(Redis)]
+      Ab[backend/apps/api] --- Rb[(Redis)]
       Rb --- Wb1[Worker 1]
       Rb --- Wb2[Worker 2]
       Rb --- Wb3[Worker N]
@@ -112,7 +112,7 @@ sequenceDiagram
 ## 事件总线
 
 每个会话对应一条逻辑频道，全局控制频道单独维护。事件以 JSON 编码，schema 定义于
-`opentalking/core/types/events.py` 与 `opentalking/events/schemas.py`。
+`backend/opentalking/core/types/events.py` 与 `backend/opentalking/events/schemas.py`。
 
 | 事件 | 生产者 | 消费者 |
 |------|--------|--------|

@@ -7,7 +7,7 @@
 
 ## `ModelAdapter` 协议
 
-源码：`opentalking/core/interfaces/model_adapter.py`。
+源码：`backend/opentalking/core/interfaces/model_adapter.py`。
 
 ```python
 from typing import Any, Protocol, runtime_checkable
@@ -48,7 +48,7 @@ class ModelAdapter(Protocol):
 
 ## 注册
 
-源码：`opentalking/models/registry.py`。
+源码：`backend/opentalking/models/registry.py`。
 
 ```python
 from opentalking.models.registry import register_model
@@ -66,8 +66,8 @@ class MyAdapter:
 
 新增本地适配器的接入步骤：
 
-1. 将类置于 `opentalking/models/<name>/adapter.py`。
-2. 在 `opentalking/models/registry.py` 的 `ensure_models_imported()` 中 import 该模块。
+1. 将类置于 `backend/opentalking/models/<name>/adapter.py`。
+2. 在 `backend/opentalking/models/registry.py` 的 `ensure_models_imported()` 中 import 该模块。
 3. 在 YAML 中设置 `models.<name>.backend: local`，或设置
    `OPENTALKING_<NAME>_BACKEND=local`。
 4. 重启服务。`GET /models` 响应中会包含 `backend: local`；只有 adapter 可正常 import
@@ -76,12 +76,12 @@ class MyAdapter:
 ## Backend resolver
 
 OpenTalking 不假设所有真实模型都必须运行在 OmniRT 上。创建会话时，流水线通过
-`opentalking/providers/synthesis/backends.py` 根据 `model + backend` 解析运行入口：
+`backend/opentalking/providers/synthesis/backends.py` 根据 `model + backend` 解析运行入口：
 
 | backend | 运行路径 | 可用性规则 |
 |---------|----------|------------|
 | `mock` | 内置 mock 合成 client。 | 始终 connected。 |
-| `local` | 从 `opentalking/models/<name>/` 加载 `ModelAdapter`。 | `get_adapter(name)` 成功时 connected。 |
+| `local` | 从 `backend/opentalking/models/<name>/` 加载 `ModelAdapter`。 | `get_adapter(name)` 成功时 connected。 |
 | `direct_ws` | YAML 或 settings 中配置的模型专属 WebSocket URL。 | 配置了 WebSocket URL 时 connected。 |
 | `omnirt` | 配置的 OmniRT 端点上的 `/v1/audio2video/{model}`。 | OmniRT 模型列表包含该模型时 connected。 |
 
@@ -106,7 +106,7 @@ models:
 
 下述适配器输出与输入音频振幅成正比的灰度帧，可作为最小模板。
 
-```python title="opentalking/models/echo/adapter.py"
+```python title="backend/opentalking/models/echo/adapter.py"
 from __future__ import annotations
 from pathlib import Path
 from typing import Any
@@ -160,7 +160,7 @@ class EchoAdapter:
 
 注册适配器：
 
-```python title="opentalking/models/registry.py（diff）"
+```python title="backend/opentalking/models/registry.py（diff）"
 def ensure_models_imported() -> None:
     import opentalking.models.quicktalk.adapter  # noqa: F401
     import opentalking.models.echo.adapter       # noqa: F401  # 新增
@@ -186,7 +186,7 @@ def ensure_models_imported() -> None:
 
 ## 参考实现：QuickTalk 适配器
 
-生产级示例位于 `opentalking/models/quicktalk/`：
+生产级示例位于 `backend/opentalking/models/quicktalk/`：
 
 - `adapter.py` —— 实现协议，并将工作委托给 `QuickTalkRuntime`。
 - `runtime.py` —— V1 运行时，包含进程内推理与面部缓存。
@@ -196,7 +196,7 @@ def ensure_models_imported() -> None:
 
 ## 远端与直连 backend
 
-远端模型应接入 `opentalking/providers/synthesis/`，而不是伪装成本地 adapter。经验规则：
+远端模型应接入 `backend/opentalking/providers/synthesis/`，而不是伪装成本地 adapter。经验规则：
 
 | 模型形态 | 推荐 backend |
 |----------|--------------|
@@ -213,10 +213,10 @@ FlashTalk 保留 legacy WebSocket 兼容路径：当 backend 为 `omnirt` 但未
 
 | 文件 | 职责 |
 |------|------|
-| `opentalking/core/interfaces/model_adapter.py` | `ModelAdapter` 协议定义。 |
-| `opentalking/core/types/frames.py` | `AudioChunk` 与 `VideoFrameData` 类型。 |
-| `opentalking/core/model_config.py` | 每模型 backend 默认值、YAML 覆盖与 `OPENTALKING_<MODEL>_BACKEND`。 |
-| `opentalking/models/registry.py` | `@register_model`、`get_adapter`、`list_models`。 |
-| `opentalking/models/quicktalk/` | 本地适配器参考实现。 |
-| `opentalking/providers/synthesis/backends.py` | 为模型解析所选 backend 与 direct WebSocket URL。 |
-| `opentalking/providers/synthesis/availability.py` | 根据当前环境解析可用模型集合。 |
+| `backend/opentalking/core/interfaces/model_adapter.py` | `ModelAdapter` 协议定义。 |
+| `backend/opentalking/core/types/frames.py` | `AudioChunk` 与 `VideoFrameData` 类型。 |
+| `backend/opentalking/core/model_config.py` | 每模型 backend 默认值、YAML 覆盖与 `OPENTALKING_<MODEL>_BACKEND`。 |
+| `backend/opentalking/models/registry.py` | `@register_model`、`get_adapter`、`list_models`。 |
+| `backend/opentalking/models/quicktalk/` | 本地适配器参考实现。 |
+| `backend/opentalking/providers/synthesis/backends.py` | 为模型解析所选 backend 与 direct WebSocket URL。 |
+| `backend/opentalking/providers/synthesis/availability.py` | 根据当前环境解析可用模型集合。 |

@@ -18,7 +18,7 @@ macOS is suitable for Mock mode, WebUI development, API debugging, and documenta
 
 ```bash
 brew install python@3.11 node ffmpeg
-uv sync --extra dev --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --python 3.11
 ```
 
 ### Not suitable for real digital-human models
@@ -113,14 +113,14 @@ With `uv`:
 
 ```bash
 export UV_DEFAULT_INDEX=https://pypi.tuna.tsinghua.edu.cn/simple
-uv sync --extra dev --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --python 3.11
 ```
 
 With `pip`:
 
 ```bash
 export PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
-pip install -e ".[dev]"
+pip install -e "./backend[dev]"
 ```
 
 ### npm Mirrors
@@ -129,7 +129,7 @@ If frontend dependency installation is slow:
 
 ```bash
 npm config set registry https://registry.npmmirror.com
-cd apps/web
+cd frontend
 npm ci
 ```
 

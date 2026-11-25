@@ -14,7 +14,7 @@
 |---------|--------|
 | `/models` shows `runtime_not_enabled` | Ensure OmniRT was started with `OMNIRT_FASTLIVEPORTRAIT_RUNTIME=1`, then check checkpoint paths and `logs/omnirt`. |
 | Audio driving has no lip motion | Check `JoyVASA/motion_generator`, `JoyVASA/motion_template`, and `chinese-hubert-base/pytorch_model.bin`. |
-| Generation reports an ONNXRuntime `GridSample` error | Re-run `uv sync --extra server --extra fasterliveportrait --python 3.11`, confirm `import tensorrt` works, and start with `OMNIRT_FASTLIVEPORTRAIT_CFG=configs/trt_infer.yaml`. |
+| Generation reports an ONNXRuntime `GridSample` error | Re-run `uv sync --extra server --extra fasterliveportrait --python 3.11`, confirm `import tensorrt` works, and start with `OMNIRT_FASTLIVEPORTRAIT_CFG=backend/configs/trt_infer.yaml`. |
 | Browser sees the model but session creation fails | Select an avatar whose `model_type` matches `fasterliveportrait`, or prepare a matching avatar bundle. |
 
 
@@ -85,7 +85,7 @@ OMNIRT_FASTLIVEPORTRAIT_RUNTIME=1 \
 OMNIRT_FASTLIVEPORTRAIT_LOAD_MODELS=1 \
 OMNIRT_FASTLIVEPORTRAIT_ROOT="$FASTERLIVEPORTRAIT_HOME" \
 OMNIRT_FASTLIVEPORTRAIT_CHECKPOINTS_DIR="$OMNIRT_MODEL_ROOT/FasterLivePortrait/checkpoints" \
-OMNIRT_FASTLIVEPORTRAIT_CFG=configs/trt_infer.yaml \
+OMNIRT_FASTLIVEPORTRAIT_CFG=backend/configs/trt_infer.yaml \
 OMNIRT_FASTLIVEPORTRAIT_DEVICE=cuda:0 \
 OMNIRT_FASTLIVEPORTRAIT_JPEG_QUALITY=85 \
 uv run omnirt serve-avatar-ws --host 0.0.0.0 --port 9000 --backend cuda
@@ -105,9 +105,9 @@ Expected status:
 
 ## 4. Configure and start OpenTalking
 
-OpenTalking configures `fasterliveportrait` as `backend: omnirt` by default. The realtime profile lives in `configs/synthesis/fasterliveportrait.yaml`; common defaults are:
+OpenTalking configures `fasterliveportrait` as `backend: omnirt` by default. The realtime profile lives in `backend/configs/synthesis/fasterliveportrait.yaml`; common defaults are:
 
-```yaml title="configs/synthesis/fasterliveportrait.yaml"
+```yaml title="backend/configs/synthesis/fasterliveportrait.yaml"
 width: 448
 fps: 25
 chunk_samples: 16000
@@ -141,7 +141,7 @@ uv run opentalking-unified --host 0.0.0.0 --port 8000
 Frontend:
 
 ```bash title="terminal"
-cd "$OPENTALKING_HOME/apps/web"
+cd "$OPENTALKING_HOME/frontend"
 npm ci
 VITE_BACKEND_PORT=8000 npm run dev -- --host 0.0.0.0 --port 5173
 ```

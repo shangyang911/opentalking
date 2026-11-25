@@ -177,7 +177,7 @@ for path in list_avatar_dirs("./examples/avatars"):
 
 | 文件 | 职责 |
 |------|------|
-| `opentalking/avatar/loader.py` | manifest 解析与 bundle 加载。 |
-| `opentalking/avatar/validator.py` | 目录遍历与严格模式校验。 |
-| `opentalking/avatar/mouth_metadata.py` | MediaPipe 嘴部检测。 |
-| `apps/api/routes/avatars.py` | REST 端点实现。 |
+| `backend/opentalking/avatar/loader.py` | manifest 解析与 bundle 加载。 |
+| `backend/opentalking/avatar/validator.py` | 目录遍历与严格模式校验。 |
+| `backend/opentalking/avatar/mouth_metadata.py` | MediaPipe 嘴部检测。 |
+| `backend/apps/api/modules/avatars/router.py` | REST 端点实现。 |

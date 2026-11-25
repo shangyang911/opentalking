@@ -65,7 +65,7 @@ For production evaluation, keep large models in a separate inference service:
 OMNIRT_ENDPOINT=http://omnirt.internal.example.com:9000
 ```
 
-```yaml title="configs/default.yaml"
+```yaml title="backend/configs/default.yaml"
 models:
   flashtalk:
     backend: omnirt

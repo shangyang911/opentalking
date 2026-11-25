@@ -2,12 +2,12 @@
 
 ## QuickTalk Local Adapter
 
-The repository includes `apps/cli/quicktalk_bench.py` for measuring QuickTalk local adapter
+The repository includes `backend/apps/cli/quicktalk_bench.py` for measuring QuickTalk local adapter
 load time, first frame, render throughput, and mux time.
 
 ```bash title="Terminal"
 source .venv/bin/activate
-python apps/cli/quicktalk_bench.py \
+python backend/apps/cli/quicktalk_bench.py \
   --asset-root /path/to/quicktalk/assets \
   --template-video /path/to/template.mp4 \
   --audio /path/to/input.wav \

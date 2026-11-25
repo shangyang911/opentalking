@@ -12,7 +12,7 @@ if [[ -z "$python_bin" ]]; then
   fi
 fi
 
-config="$repo_root/configs/benchmark/opentalking-e2e.yaml"
+config="$repo_root/backend/configs/benchmark/opentalking-e2e.yaml"
 backend="omnirt"
 model="all"
 api_base_url=""

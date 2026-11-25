@@ -26,7 +26,7 @@ def _write_private(path: Path, data: str) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--template", default="configs/streaming/mediamtx.yml")
+    parser.add_argument("--template", default="backend/configs/streaming/mediamtx.yml")
     parser.add_argument("--output-dir", default="outputs/streaming")
     args = parser.parse_args()
     template = Path(args.template).read_text(encoding="utf-8")

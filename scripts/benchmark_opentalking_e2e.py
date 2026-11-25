@@ -852,7 +852,7 @@ for pid in $(pgrep -f "$repo_root/.venv/bin/.*opentalking-unified" || true); do
     kill "$pid" >/dev/null 2>&1 || true
   fi
 done
-for pid in $(pgrep -f "$repo_root/apps/web/node_modules/.bin/vite .*--port {web_port}" || true); do
+for pid in $(pgrep -f "$repo_root/frontend/node_modules/.bin/vite .*--port {web_port}" || true); do
   [ "$pid" = "$$" ] && continue
   kill "$pid" >/dev/null 2>&1 || true
 done
@@ -894,8 +894,8 @@ async def run_once(args: argparse.Namespace) -> None:
         (out_dir / sub).mkdir(parents=True, exist_ok=True)
 
     input_cfg = cfg.get("input") if isinstance(cfg.get("input"), dict) else {}
-    audio_src = Path(resolve_path(str(input_cfg.get("audio_path", "configs/benchmark/input/ttsmaker-file.mp3")), repo))
-    ref_src = Path(resolve_path(str(input_cfg.get("ref_image", "configs/benchmark/input/reference.png")), repo))
+    audio_src = Path(resolve_path(str(input_cfg.get("audio_path", "backend/configs/benchmark/input/ttsmaker-file.mp3")), repo))
+    ref_src = Path(resolve_path(str(input_cfg.get("ref_image", "backend/configs/benchmark/input/reference.png")), repo))
     shutil.copy2(ref_src, out_dir / "input_reference.png")
     audio_duration = load_audio_duration(audio_src, out_dir / "input_audio.wav", float(input_cfg.get("audio_duration_seconds", 7.0)))
 
@@ -1155,7 +1155,7 @@ async def run_once(args: argparse.Namespace) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", default="configs/benchmark/opentalking-e2e.yaml")
+    parser.add_argument("--config", default="backend/configs/benchmark/opentalking-e2e.yaml")
     parser.add_argument("--repo-root", default=".")
     parser.add_argument("--out-dir", default="")
     parser.add_argument("--api-base-url", default="")

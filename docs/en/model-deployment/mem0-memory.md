@@ -147,7 +147,7 @@ After changing SDK versions or dependencies, run:
 
 ```bash title="Terminal"
 python -m pip check
-python -m pytest tests/unit/test_memory_provider.py apps/api/tests/test_memory_api.py apps/api/tests/test_config.py
+python -m pytest backend/tests/unit/test_memory_provider.py backend/tests/api/test_memory_api.py backend/tests/api/test_config.py
 ```
 
 ## References

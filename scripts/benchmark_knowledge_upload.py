@@ -29,7 +29,7 @@ from typing import Any
 
 # Make ``python scripts/benchmark_knowledge_upload.py`` work from a source
 # checkout without requiring an editable package install.
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
 
 from opentalking.agent.knowledge_index import LightRAGSearchResult, LightRAGStatus
 from opentalking.agent.knowledge_store import KnowledgeStore

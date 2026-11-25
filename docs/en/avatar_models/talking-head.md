@@ -82,7 +82,7 @@ below only overrides `quicktalk` to `local`, so the same frontend can select bot
 
 ```bash title="Terminal"
 cd "$OPENTALKING_HOME"
-uv sync --extra dev --extra models --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --python 3.11
 
 export OPENTALKING_TORCH_DEVICE=cuda:0
 export OPENTALKING_QUICKTALK_ASSET_ROOT="$OPENTALKING_HOME/models/quicktalk"

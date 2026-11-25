@@ -192,8 +192,8 @@ rejected.
 
 ## Source files
 
-- `apps/api/routes/avatars.py` — endpoint implementations.
-- `apps/api/schemas/avatar.py` — `AvatarSummary` response model.
-- `opentalking/avatar/loader.py` — `load_avatar_bundle()`.
-- `opentalking/avatar/validator.py` — `list_avatar_dirs()`.
-- `opentalking/avatar/mouth_metadata.py` — MediaPipe mouth detection.
+- `backend/apps/api/modules/avatars/router.py` — endpoint implementations.
+- `backend/apps/api/modules/avatars/schemas.py` — `AvatarSummary` response model.
+- `backend/opentalking/avatar/loader.py` — `load_avatar_bundle()`.
+- `backend/opentalking/avatar/validator.py` — `list_avatar_dirs()`.
+- `backend/opentalking/avatar/mouth_metadata.py` — MediaPipe mouth detection.

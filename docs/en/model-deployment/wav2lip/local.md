@@ -18,7 +18,7 @@ export UV_HTTP_TIMEOUT=300
 export UV_LINK_MODE=copy
 
 cd "$OPENTALKING_HOME"
-uv sync --extra dev --extra models --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --python 3.11
 source .venv/bin/activate
 export OPENTALKING_MODEL_ROOT="${OPENTALKING_MODEL_ROOT:-$DIGITAL_HUMAN_HOME/models}"
 export OPENTALKING_WAV2LIP_MODEL_ROOT="${OPENTALKING_WAV2LIP_MODEL_ROOT:-$OPENTALKING_MODEL_ROOT/wav2lip}"

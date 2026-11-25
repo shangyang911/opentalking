@@ -243,7 +243,7 @@ async def stream_audio(session_id: str, pcm_chunks):
 
 ## Source files
 
-- `apps/api/routes/events.py` — SSE endpoint.
-- `apps/api/routes/sessions.py` — `speak_audio_stream` WebSocket endpoint.
-- `opentalking/core/events.py` — event schemas.
-- `opentalking/core/bus.py` — pub/sub bus.
+- `backend/apps/api/modules/conversation/events.py` — SSE endpoint.
+- `backend/apps/api/modules/conversation/sessions.py` — `speak_audio_stream` WebSocket endpoint.
+- `backend/opentalking/core/events.py` — event schemas.
+- `backend/opentalking/core/bus.py` — pub/sub bus.

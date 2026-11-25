@@ -74,7 +74,7 @@ the adapter is a thin WebSocket client; inference is performed on the model serv
 
 `opentalking/rtc/` packages PCM audio and synthesized frames into `RTCAudioFrame` and
 `RTCVideoFrame` primitives, then writes them to the configured WebRTC track. The
-browser renders the audio and video through the `<video>` element in `apps/web`.
+browser renders the audio and video through the `<video>` element in `frontend`.
 
 ## Interruption (barge-in)
 
@@ -118,6 +118,6 @@ first-token.
 | `opentalking/llm/` | Language model streaming clients. |
 | `opentalking/worker/` | Pipeline orchestration, including sentence splitting and fan-out. |
 | `opentalking/tts/adapters/` | Text-to-speech provider implementations. |
-| `opentalking/models/quicktalk/` and related | Synthesis adapters. |
+| `backend/opentalking/models/quicktalk/` and related | Synthesis adapters. |
 | `opentalking/rtc/` | WebRTC track and frame queue management. |
-| `apps/api/routes/sessions.py` | Endpoints that drive and control the pipeline. |
+| `backend/apps/api/modules/conversation/sessions.py` | Endpoints that drive and control the pipeline. |

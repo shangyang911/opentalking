@@ -3,4 +3,6 @@ repos:
     rev: v0.11.8
     hooks:
       - id: ruff-check
+        args: [--config, backend/pyproject.toml]
       - id: ruff-format
+        args: [--config, backend/pyproject.toml]

@@ -1,0 +1,83 @@
+# OpenTalking — single-host all-in-one stack.
+#
+# Default (no profile): redis + opentalking api/worker/web with MOCK synthesis.
+#   `bash scripts/compose.sh up`
+#   No GPU required; you can click around the UI and exercise the full pipeline
+#   except the actual lip-sync model. Useful for first-run UX and frontend dev.
+#
+# GPU profile: also pulls and runs omnirt for real synthesis.
+#   `bash scripts/compose.sh --profile gpu up`
+#   Requires: NVIDIA driver + nvidia-container-toolkit on the host.
+#
+# Stop everything: `bash scripts/compose.sh down`
+#
+# Run from the repo root with bash scripts/compose.sh up (or docker compose -f deploy/compose.yml up).
+
+services:
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 5
+
+  omnirt:
+    profiles: ["gpu"]
+    image: ghcr.io/datascale-ai/omnirt:cuda-latest
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ports: ["9000:9000"]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:9000/health"]
+      interval: 10s
+      retries: 12
+
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.api
+    env_file: ../.env
+    environment:
+      OPENTALKING_REDIS_URL: redis://redis:6379/0
+      OPENTALKING_WORKER_URL: http://worker:9001
+      FORWARDED_ALLOW_IPS: "127.0.0.1,::1,${OPENTALKING_PROXY_IP:-172.28.80.10}"
+      # OPENTALKING_INFERENCE_MOCK is set per-profile below via override files.
+      # Default profile: mock=1; GPU profile: mock=0 + OMNIRT_ENDPOINT.
+      OPENTALKING_INFERENCE_MOCK: ${OPENTALKING_INFERENCE_MOCK:-1}
+      OMNIRT_ENDPOINT: ${OMNIRT_ENDPOINT:-}
+    depends_on:
+      redis: { condition: service_healthy }
+    ports: ["8000:8000"]
+
+  worker:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.worker
+    env_file: ../.env
+    environment:
+      OPENTALKING_REDIS_URL: redis://redis:6379/0
+      OPENTALKING_INFERENCE_MOCK: ${OPENTALKING_INFERENCE_MOCK:-1}
+      OMNIRT_ENDPOINT: ${OMNIRT_ENDPOINT:-}
+    depends_on:
+      redis: { condition: service_healthy }
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+    ports: ["5173:80"]
+    depends_on: [api]
+    networks:
+      default:
+        ipv4_address: ${OPENTALKING_PROXY_IP:-172.28.80.10}
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${OPENTALKING_PROXY_SUBNET:-172.28.80.0/24}

@@ -40,7 +40,7 @@ mkdir -p "$OPENTALKING_LOCAL_AUDIO_MODEL_ROOT"
 export HF_ENDPOINT="${HF_ENDPOINT:-https://hf-mirror.com}"
 # HF Xet/CAS 链路在部分网络环境下可能反复 SSL resume，优先使用普通 HTTP 下载。
 export HF_HUB_DISABLE_XET="${HF_HUB_DISABLE_XET:-1}"
-uv sync --extra dev --extra models --extra local-audio --extra quicktalk-cuda --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --extra local-audio --extra quicktalk-cuda --python 3.11
 
 python scripts/download_local_audio_models.py \
   --root "$OPENTALKING_LOCAL_AUDIO_MODEL_ROOT" \
@@ -158,5 +158,5 @@ IndexTTS sidecar。
 | sidecar 接口不匹配 | 检查 sidecar 端口和路径是否与 `OPENTALKING_TTS_LOCAL_INDEXTTS_SERVICE_URL` 一致；默认端口为 `19092`。 |
 | 下载时反复出现 `cas-bridge.xethub.hf.co` 或 SSL resume | 保留 `HF_HUB_DISABLE_XET=1` 后重新运行同一条下载命令；脚本会复用已完整下载的模型目录。必要时临时改用 `HF_ENDPOINT=https://huggingface.co`。 |
 | 下载缺文件 | 重新运行下载脚本，确认五个 `indextts2*` 模型目录都存在。 |
-| QuickTalk 报 `onnxruntime` 没有 `InferenceSession` | 重新运行 `uv sync --extra dev --extra models --extra local-audio --extra quicktalk-cuda --python 3.11`；CPU 环境把 `quicktalk-cuda` 换成 `quicktalk-cpu`。 |
+| QuickTalk 报 `onnxruntime` 没有 `InferenceSession` | 重新运行 `UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --extra local-audio --extra quicktalk-cuda --python 3.11`；CPU 环境把 `quicktalk-cuda` 换成 `quicktalk-cpu`。 |
 | 依赖冲突 | 将 IndexTTS runtime 保持在独立 venv 中，不要安装进 OpenTalking 主 `.venv`。 |

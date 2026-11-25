@@ -74,7 +74,7 @@ run_dir="$DIGITAL_HUMAN_HOME/run"
 log_dir="$DIGITAL_HUMAN_HOME/logs"
 pid_file="$run_dir/opentalking-web-$web_port.pid"
 log_file="$log_dir/opentalking-web-$web_port.log"
-web_dir="$repo_root/apps/web"
+web_dir="$repo_root/frontend"
 
 mkdir -p "$run_dir" "$log_dir"
 

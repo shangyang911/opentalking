@@ -117,8 +117,8 @@ fi
 
 if [[ ! -f "$repo_root/.venv/bin/activate" ]]; then
   echo "Missing virtualenv: $repo_root/.venv" >&2
-  echo "Run this first: cd \"$repo_root\" && uv sync --extra dev --python 3.11" >&2
-  echo "Fallback: python3 -m venv .venv && source .venv/bin/activate && pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e \".[dev]\"" >&2
+  echo "Run this first: cd \"$repo_root\" && UV_PROJECT_ENVIRONMENT=\"$repo_root/.venv\" uv sync --project \"$repo_root/backend\" --extra dev --python 3.11" >&2
+  echo "Fallback: python3 -m venv .venv && source .venv/bin/activate && pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e \"./backend[dev]\"" >&2
   exit 1
 fi
 

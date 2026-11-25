@@ -42,7 +42,7 @@ $DIGITAL_HUMAN_HOME/model-repos/
 
 ## Configuration
 
-```yaml title="configs/default.yaml"
+```yaml title="backend/configs/default.yaml"
 models:
   flashtalk:
     backend: omnirt

@@ -46,7 +46,7 @@ cd opentalking
 # 可选：使用国内 PyPI 镜像
 export UV_DEFAULT_INDEX=https://pypi.tuna.tsinghua.edu.cn/simple
 
-uv sync --extra dev --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --python 3.11
 source .venv/bin/activate
 cp .env.example .env
 ```
@@ -56,7 +56,7 @@ cp .env.example .env
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e ".[dev]"
+pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e "./backend[dev]"
 cp .env.example .env
 ```
 
@@ -147,7 +147,7 @@ node --version
 
 ```bash
 cd "$DIGITAL_HUMAN_HOME/opentalking"
-uv sync --extra dev --extra models --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --python 3.11
 source .venv/bin/activate
 ```
 

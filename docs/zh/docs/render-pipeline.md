@@ -66,7 +66,7 @@ WebSocket 薄客户端，推理在模型服务端执行。
 ### 7. AV 打包与 WebRTC 推送
 
 `opentalking/rtc/` 将 PCM 音频与合成视频帧封装为 `RTCAudioFrame` 与 `RTCVideoFrame`，
-然后写入已配置的 WebRTC track。浏览器通过 `apps/web` 中的 `<video>` 元素播放音视频。
+然后写入已配置的 WebRTC track。浏览器通过 `frontend` 中的 `<video>` 元素播放音视频。
 
 ## 打断（barge-in）
 
@@ -105,6 +105,6 @@ WebSocket 薄客户端，推理在模型服务端执行。
 | `opentalking/llm/` | 语言模型流式客户端。 |
 | `opentalking/worker/` | 管线编排，包含分句与扇出。 |
 | `opentalking/tts/adapters/` | 语音合成 provider 实现。 |
-| `opentalking/models/quicktalk/` 及相关目录 | 合成适配器。 |
+| `backend/opentalking/models/quicktalk/` 及相关目录 | 合成适配器。 |
 | `opentalking/rtc/` | WebRTC track 与帧队列管理。 |
-| `apps/api/routes/sessions.py` | 驱动与控制管线的端点。 |
+| `backend/apps/api/modules/conversation/sessions.py` | 驱动与控制管线的端点。 |

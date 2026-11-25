@@ -546,7 +546,7 @@ Phase 2 增加异步抽取任务：
 ## 十一、推荐模块结构
 
 ```text
-opentalking/agent/
+backend/opentalking/agent/
   __init__.py
   context_builder.py
   memory_store.py
@@ -555,7 +555,7 @@ opentalking/agent/
   lightrag_engine.py
   prompt.py
 
-apps/api/routes/agent.py
+backend/apps/api/modules/agent.py
 ```
 
 职责：
@@ -680,7 +680,7 @@ Phase 1 稳定后，再接 Phase 2 的 LightRAG 单知识库。
 | 维度       | OpenTalking                                                  | OmniRT                                                       | 结论                                                         |
 | :--------- | :----------------------------------------------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- |
 | 仓库定位   | 实时数字人对话编排框架，覆盖前端交互、会话状态、LLM、TTS、打断、字幕、WebRTC、本地或远端模型调用。仓库根目录可见 `apps`、`configs`、`docker`、`docs`、`examples/avatars`、`opentalking`、`tests` 等。 | 面向数字人链路的多模态生成推理框架，仓库根目录可见 `docs`、`model_backends`、`scripts`、`src/omnirt`、`tests` 等；强调统一请求契约、实时协议、常驻 worker、跨 CUDA/Ascend 后端。 | **OpenTalking 负责应用与会话，OmniRT 负责推理运行时**。      |
-| 服务入口   | React + FastAPI + WebRTC 明确出现在 README 标识中；前端主入口为 `apps/web/src/App.tsx`。 | Python API、CLI、FastAPI 服务三种入口；`omnirt serve` 组合 FastAPI、`OmniEngine`、Prometheus、JobStore、OTLP 与可选远程 gRPC worker。 | 记忆/RAG 更适合放在 OpenTalking API/worker 层，OmniRT 保持推理后端角色。 |
+| 服务入口   | React + FastAPI + WebRTC 明确出现在 README 标识中；前端主入口为 `frontend/src/app/App.tsx`。 | Python API、CLI、FastAPI 服务三种入口；`omnirt serve` 组合 FastAPI、`OmniEngine`、Prometheus、JobStore、OTLP 与可选远程 gRPC worker。 | 记忆/RAG 更适合放在 OpenTalking API/worker 层，OmniRT 保持推理后端角色。 |
 | 与对方关系 | 高质量部署通过 OmniRT 接入 FlashTalk 等模型。                | 明确提供 FlashTalk-compatible WebSocket 兼容 OpenTalking。   | 两者是天然上下游。                                           |
 
 
@@ -1105,7 +1105,7 @@ python
 复制
 
 ```python
-# apps/api/routes/agent.py
+# backend/apps/api/modules/agent.py
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from uuid import uuid4
 from pathlib import Path

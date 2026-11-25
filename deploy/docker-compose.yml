@@ -1,0 +1,64 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.api
+    depends_on:
+      - redis
+    environment:
+      OPENTALKING_REDIS_URL: redis://redis:6379/0
+      OPENTALKING_WORKER_URL: http://worker:9001
+      FORWARDED_ALLOW_IPS: "127.0.0.1,::1,${OPENTALKING_PROXY_IP:-172.28.80.10}"
+      OPENTALKING_AVATARS_DIR: /app/examples/avatars
+      OPENTALKING_CORS_ORIGINS: http://localhost:8080,http://127.0.0.1:8080
+    ports:
+      - "8000:8000"
+
+  worker:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.worker
+    depends_on:
+      - redis
+    environment:
+      OPENTALKING_REDIS_URL: redis://redis:6379/0
+      OPENTALKING_AVATARS_DIR: /app/examples/avatars
+      OPENTALKING_TORCH_DEVICE: cpu
+      OPENTALKING_FLASHTALK_MODE: remote
+      OPENTALKING_FLASHTALK_WS_URL: ws://flashtalk:8765
+    ports:
+      - "9001:9001"
+
+  flashtalk:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.flashtalk
+    environment:
+      OPENTALKING_FLASHTALK_PORT: 8765
+    ports:
+      - "8765:8765"
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+      args:
+        VITE_API_BASE: /api
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+    networks:
+      default:
+        ipv4_address: ${OPENTALKING_PROXY_IP:-172.28.80.10}
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${OPENTALKING_PROXY_SUBNET:-172.28.80.0/24}

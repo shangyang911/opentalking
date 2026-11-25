@@ -21,7 +21,7 @@ This path keeps the existing OpenTalking `/sessions/*`, `/tts/preview`, and sess
 
 ```bash title="terminal"
 cd "$DIGITAL_HUMAN_HOME/opentalking"
-uv sync --extra dev --extra models --extra local-audio --extra quicktalk-cuda --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --extra local-audio --extra quicktalk-cuda --python 3.11
 source .venv/bin/activate
 ```
 

@@ -1,10 +1,13 @@
-.PHONY: test lint build-web
+.PHONY: test lint build-web dev
 
 test:
-	pytest tests -v
+	pytest backend/tests frontend/tests/regression -v
 
 lint:
-	ruff check opentalking/core opentalking/events opentalking/avatar apps tests
+	ruff check --config backend/pyproject.toml backend/opentalking/core backend/opentalking/events backend/opentalking/avatar backend/apps backend/tests
 
 build-web:
-	cd apps/web && npm run build
+	cd frontend && npm run build
+
+dev:
+	bash scripts/start_unified.sh --mock

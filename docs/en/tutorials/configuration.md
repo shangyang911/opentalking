@@ -3,8 +3,8 @@
 OpenTalking applies configuration from two sources, in order of decreasing precedence:
 
 1. **Environment variables** — provided via `.env` files or the process environment.
-2. **YAML files** — `configs/default.yaml` and optional overlays from `configs/profiles/*.yaml`
-   and `configs/synthesis/*.yaml`.
+2. **YAML files** — `backend/configs/default.yaml` and optional overlays from `backend/configs/profiles/*.yaml`
+   and `backend/configs/synthesis/*.yaml`.
 
 The reference `.env.example` file is organized into four tiers. Each tier corresponds
 to a deployment scenario; only the sections relevant to the target scenario need to be
@@ -207,11 +207,11 @@ OPENTALKING_TTS_ELEVENLABS_MODEL_ID=eleven_flash_v2_5
 ## YAML configuration
 
 The YAML configuration layer provides structural defaults. The runtime loads
-`configs/default.yaml` and overlays the file referenced by `OPENTALKING_CONFIG_FILE`.
+`backend/configs/default.yaml` and overlays the file referenced by `OPENTALKING_CONFIG_FILE`.
 
-### `configs/default.yaml` top-level keys
+### `backend/configs/default.yaml` top-level keys
 
-```yaml title="configs/default.yaml (excerpt)"
+```yaml title="backend/configs/default.yaml (excerpt)"
 api:
   host: 0.0.0.0
   port: 8000
@@ -246,7 +246,7 @@ models:
 
 ### Hardware profiles
 
-The directory `configs/profiles/` ships with four predefined profiles:
+The directory `backend/configs/profiles/` ships with four predefined profiles:
 
 - `cpu-demo.yaml` — orchestration-only, mock synthesis.
 - `cuda-3090.yaml` — wav2lip and musetalk on a single GPU.
@@ -256,13 +256,13 @@ The directory `configs/profiles/` ships with four predefined profiles:
 To apply a profile:
 
 ```bash title="terminal"
-export OPENTALKING_CONFIG_FILE=./configs/profiles/cuda-3090.yaml
+export OPENTALKING_CONFIG_FILE=backend/configs/profiles/cuda-3090.yaml
 opentalking-unified
 ```
 
 ### Synthesis-specific tuning
 
-Files under `configs/synthesis/` override the `models.<name>` subtree without
+Files under `backend/configs/synthesis/` override the `models.<name>` subtree without
 duplicating the complete default configuration.
 
 ## Precedence summary
@@ -273,7 +273,7 @@ lowest:
 1. Shell environment variables.
 2. Variables defined in the `.env` file.
 3. YAML file referenced by `OPENTALKING_CONFIG_FILE`.
-4. `configs/default.yaml`.
+4. `backend/configs/default.yaml`.
 
 !!! note "Restart required for changes"
     Configuration values are read at process startup. Configuration changes require a

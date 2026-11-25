@@ -4,10 +4,10 @@ Describe the change.
 
 ## Validation
 
-- [ ] `ruff check src/opentalking/core src/opentalking/server src/opentalking/worker src/opentalking/llm src/opentalking/tts src/opentalking/avatars src/opentalking/events src/opentalking/rtc apps/api apps/unified apps/cli tests`
-- [ ] `mypy src/opentalking/core src/opentalking/server src/opentalking/worker src/opentalking/llm src/opentalking/tts src/opentalking/avatars src/opentalking/events src/opentalking/rtc apps/api apps/unified apps/cli --ignore-missing-imports`
-- [ ] `pytest apps/api/tests apps/worker/tests tests`
-- [ ] `cd apps/web && npm run build`
+- [ ] `ruff check --config backend/pyproject.toml backend/opentalking/core backend/opentalking/events backend/opentalking/avatar backend/apps backend/tests`
+- [ ] `mypy --config-file backend/pyproject.toml backend/opentalking/core backend/opentalking/events backend/opentalking/avatar backend/apps --ignore-missing-imports`
+- [ ] `pytest backend/tests frontend/tests/regression`
+- [ ] `cd frontend && npm run build`
 
 ## Notes
 

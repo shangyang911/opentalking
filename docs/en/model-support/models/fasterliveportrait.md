@@ -76,7 +76,7 @@ OMNIRT_FASTLIVEPORTRAIT_RUNTIME=1 \
 OMNIRT_FASTLIVEPORTRAIT_LOAD_MODELS=1 \
 OMNIRT_FASTLIVEPORTRAIT_ROOT="$FASTERLIVEPORTRAIT_HOME" \
 OMNIRT_FASTLIVEPORTRAIT_CHECKPOINTS_DIR="$OMNIRT_MODEL_ROOT/FasterLivePortrait/checkpoints" \
-OMNIRT_FASTLIVEPORTRAIT_CFG=configs/trt_infer.yaml \
+OMNIRT_FASTLIVEPORTRAIT_CFG=backend/configs/trt_infer.yaml \
 OMNIRT_FASTLIVEPORTRAIT_DEVICE=cuda:0 \
 OMNIRT_FASTLIVEPORTRAIT_JPEG_QUALITY=85 \
 uv run omnirt serve-avatar-ws --host 0.0.0.0 --port 9000 --backend cuda
@@ -113,7 +113,7 @@ For Video Clone validation, OpenTalking API still needs to reach OmniRT and `/mo
 
 ## Realtime Conversation Parameters
 
-Realtime conversation defaults live in `configs/synthesis/fasterliveportrait.yaml`. Common fields:
+Realtime conversation defaults live in `backend/configs/synthesis/fasterliveportrait.yaml`. Common fields:
 
 | Parameter | Effect | Common setting |
 | --- | --- | --- |

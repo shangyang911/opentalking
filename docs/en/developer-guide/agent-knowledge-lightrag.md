@@ -11,12 +11,12 @@ API flows, while routing retrieval through a LightRAG index by default.
 
 Key implementation areas:
 
-- `opentalking/agent/knowledge_index.py` adds the LightRAG index adapter.
-- `opentalking/agent/knowledge_store.py` keeps metadata and document lifecycle
+- `backend/opentalking/agent/knowledge_index.py` adds the LightRAG index adapter.
+- `backend/opentalking/agent/knowledge_store.py` keeps metadata and document lifecycle
   handling, and delegates indexing and query to the index layer.
-- `apps/api/routes/sessions.py` adds runtime knowledge-base switching for active
+- `backend/apps/api/modules/conversation/sessions.py` adds runtime knowledge-base switching for active
   sessions.
-- `apps/web/src/App.tsx` and `apps/web/src/components/SettingsPanel.tsx` keep the
+- `frontend/src/app/App.tsx` and `frontend/src/features/settings/SettingsPanel.tsx` keep the
   selected knowledge base synchronized with the active realtime session.
 
 ## Runtime Behavior

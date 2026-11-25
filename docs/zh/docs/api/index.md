@@ -1,6 +1,6 @@
 # API 接口
 
-OpenTalking 暴露由 `apps/api/routes/` 定义的 REST、Server-Sent Events 与 WebSocket
+OpenTalking 暴露由 `backend/apps/api/modules/` 定义的 REST、Server-Sent Events 与 WebSocket
 接口，分组如下：
 
 | 分组 | 用途 | 文档 |
@@ -15,8 +15,10 @@ OpenTalking 暴露由 `apps/api/routes/` 定义的 REST、Server-Sent Events 与
 
 ## Base URL 与鉴权
 
-默认 Base URL 为 `http://localhost:8000`。生产部署通常在上游反向代理终结 TLS 与
-鉴权。OpenTalking 自身不对路由强制鉴权；将 API 公开暴露的部署应在网关层实现鉴权。
+默认 Base URL 为 `http://localhost:8000`，前端通常通过同源 `/api` 代理访问。
+默认启用手机验证码与管理员账号认证，使用 HttpOnly Cookie 保持会话。
+`/auth/status`、验证码发送与登录接口及 `/healthz` 可公开访问；其余业务接口要求登录，
+管理员接口及运行配置修改还会验证管理员角色。详见[账号配置](../../usage/authentication.md)。
 
 `OPENTALKING_CORS_ORIGINS` 环境变量控制允许的跨域 origin，详见
 [配置 §3](../../tutorials/configuration.md#3)。
@@ -41,8 +43,42 @@ multipart 上传（`multipart/form-data`）。
 
 ## 端点汇总
 
+### 个人中心
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| `GET` | `/account/profile` | 读取本人资料 |
+| `PUT` | `/account/profile` | 修改昵称与签名 |
+| `GET` | `/account/avatar` | 读取本人账户头像 |
+| `POST` | `/account/avatar` | 上传并规范化账户头像 |
+| `DELETE` | `/account/avatar` | 移除账户头像 |
+| `POST` | `/account/password` | 验证当前密码并更新密码 |
+| `GET` | `/billing/activity` | 本人最近 100 次任务结算 |
+
 | 方法 | 路径 | 分组 |
 |------|------|------|
+| `GET` | `/auth/status` | 认证 |
+| `POST` | `/auth/sms` | 认证 |
+| `POST` | `/auth/login` | 认证 |
+| `POST` | `/auth/password/login` | 认证 |
+| `POST` | `/auth/admin/login` | 认证 |
+| `GET` | `/auth/me` | 认证 |
+| `POST` | `/auth/logout` | 认证 |
+| `GET` | `/admin/overview` | 管理员 |
+| `GET` | `/billing/me` | 会员与账本 |
+| `GET` | `/billing/plans` | 会员与账本 |
+| `GET` | `/billing/orders` | 会员与账本 |
+| `POST` | `/billing/orders` | 会员与账本 |
+| `POST` | `/billing/orders/{order_id}/cancel` | 会员与账本 |
+| `POST` | `/billing/orders/{order_id}/demo-pay` | 演示付款，默认关闭 |
+| `POST` | `/admin/billing/orders/{order_id}/demo-confirm` | 管理员确认演示开通，默认关闭 |
+| `POST` | `/admin/billing/orders/{order_id}/demo-revoke` | 管理员撤销演示权益，默认关闭 |
+| `GET` | `/billing/usage` | 会员与账本 |
+| `GET` | `/admin/billing` | 会员与账本 |
+| `PUT` | `/admin/billing/plans/{plan_id}` | 会员与账本 |
+| `POST` | `/admin/billing/orders/{order_id}/confirm` | 会员与账本 |
+| `POST` | `/admin/billing/orders/{order_id}/refund` | 会员与账本 |
+| `POST` | `/admin/billing/gifts` | 会员与账本 |
 | `GET` | `/health` | 健康检查与模型 |
 | `GET` | `/healthz` | 健康检查与模型 |
 | `GET` | `/queue/status` | 健康检查与模型 |
@@ -77,7 +113,6 @@ multipart 上传（`multipart/form-data`）。
 | `GET` | `/voices` | TTS 与音色 |
 | `POST` | `/voices/clone` | TTS 与音色 |
 | `DELETE` | `/voices/{entry_id}` | TTS 与音色 |
-| `GET` | `/voice-uploads/{token}` | TTS 与音色 |
 
 ## 典型请求顺序
 
@@ -125,12 +160,57 @@ FastAPI 自动生成完整的 OpenAPI 3.x 规范，可通过以下端点访问�
 
 | 文件 | 路由 |
 |------|------|
-| `apps/api/routes/health.py` | `/health`、`/healthz`、`/queue/status` |
-| `apps/api/routes/models.py` | `/models` |
-| `apps/api/routes/avatars.py` | `/avatars/*` |
-| `apps/api/routes/sessions.py` | `/sessions/*` |
-| `apps/api/routes/tts_preview.py` | `/tts/preview` |
-| `apps/api/routes/voices.py` | `/voices/*`、`/voice-uploads/{token}` |
-| `apps/api/routes/events.py` | `/sessions/{id}/events`（SSE） |
-| `apps/api/schemas/session.py` | 会话的请求与响应模型。 |
-| `apps/api/schemas/avatar.py` | `AvatarSummary` 响应模型。 |
+| `backend/apps/api/modules/system/health.py` | `/health`、`/healthz`、`/queue/status` |
+| `backend/apps/api/modules/system/models.py` | `/models` |
+| `backend/apps/api/modules/avatars/router.py` | `/avatars/*` |
+| `backend/apps/api/modules/conversation/sessions.py` | `/sessions/*` |
+| `backend/apps/api/modules/voices/preview.py` | `/tts/preview` |
+| `backend/apps/api/modules/voices/router.py` | `/voices`、`/voices/clone`、`/voices/{entry_id}` |
+| `backend/apps/api/modules/conversation/events.py` | `/sessions/{id}/events`（SSE） |
+| `backend/apps/api/modules/conversation/schemas.py` | 会话的请求与响应模型。 |
+| `backend/apps/api/modules/avatars/schemas.py` | `AvatarSummary` 响应模型。 |
+
+## 当前业务模块补充接口
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| `GET` | `/avatars/{avatar_id}/client-assets/{asset_path}` | Get Client Asset |
+| `GET` | `/avatars/{avatar_id}/client-renderer` | Get Client Renderer |
+| `PATCH` | `/avatars/{avatar_id}/person-mode` | Update Avatar Person Mode |
+| `GET` | `/avatars/{avatar_id}/preview-video` | Get Preview Video |
+| `POST` | `/avatars/{avatar_id}/prewarm` | Prewarm Avatar |
+| `GET` | `/exports/videos` | List Export Videos |
+| `POST` | `/exports/videos` | Upload Export Video |
+| `DELETE` | `/exports/videos/{export_id}` | Delete Export Video |
+| `GET` | `/exports/videos/{export_id}` | Get Export Video |
+| `GET` | `/exports/videos/{export_id}/download` | Download Export Video |
+| `GET` | `/runtime-config` | Get Runtime Config |
+| `POST` | `/runtime-config/apply` | Apply Runtime Config |
+| `GET` | `/runtime/status` | Runtime Status |
+| `GET` | `/sessions/webrtc/ice-config` | Webrtc Ice Config |
+| `POST` | `/sessions/{session_id}/fasterliveportrait-config` | Update Fasterliveportrait Config |
+| `POST` | `/sessions/{session_id}/knowledge-bases` | Update Session Knowledge Bases |
+| `POST` | `/tts/preview-duo-dialog` | Preview Duo Dialog Tts |
+| `POST` | `/video-creation/jobs` | Create Video Creation Job |
+| `DELETE` | `/video-creation/jobs/{job_id}` | Delete Video Creation Job |
+| `GET` | `/video-creation/jobs/{job_id}` | Get Video Creation Job |
+| `POST` | `/video-creation/jobs/{job_id}/stop` | Stop Video Creation Job |
+
+## 知识库与明确记忆
+
+详见[使用说明](../../usage/knowledge-memory.md)。
+
+| 方法 | 路径 |
+| --- | --- |
+| `GET` | `/knowledge/bases` |
+| `POST` | `/knowledge/bases` |
+| `DELETE` | `/knowledge/bases/{kb_id}` |
+| `GET` | `/knowledge/bases/{kb_id}/documents` |
+| `POST` | `/knowledge/bases/{kb_id}/documents` |
+| `DELETE` | `/knowledge/bases/{kb_id}/documents/{doc_id}` |
+| `POST` | `/knowledge/bases/{kb_id}/documents/{doc_id}/retry` |
+| `POST` | `/knowledge/bases/{kb_id}/query` |
+| `GET` | `/knowledge/memories` |
+| `POST` | `/knowledge/memories` |
+| `PUT` | `/knowledge/memories/{memory_id}` |
+| `DELETE` | `/knowledge/memories/{memory_id}` |

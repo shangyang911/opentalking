@@ -18,8 +18,8 @@
 
 ### 1. 代码物理位置矛盾（apps vs src 双轨）
 
-- `apps/api/` 与 `src/opentalking/server/`（含 `_legacy.py`、`ws_server.py`、`runtime.py`）职责重叠：HTTP 入口/会话运行时同时存在两套。
-- `apps/cli/` 与 `src/opentalking/cli/` 文件几乎重名（`download_models.py` / `generate_video.py` / `gradio_app.py`）—— 迁移没收尾的痕迹。
+- `backend/apps/api/` 与 `src/opentalking/server/`（含 `_legacy.py`、`ws_server.py`、`runtime.py`）职责重叠：HTTP 入口/会话运行时同时存在两套。
+- `backend/apps/cli/` 与 `src/opentalking/cli/` 文件几乎重名（`download_models.py` / `generate_video.py` / `gradio_app.py`）—— 迁移没收尾的痕迹。
 - `apps/worker/` 只剩 `tests/`，真正的 Worker 实现在 `src/opentalking/worker/`，`pyproject.toml` 也是这么指向的（`opentalking.worker.main:main`），与 `apps/` 命名给人的预期相反。
 - 根目录 `multitalk_utils.py`（约 26K 行）显然是从外部 fork 拷过来未归位的资产。
 
@@ -56,11 +56,11 @@
 
 ### 6. 配置文件分散
 
-- 根 `configs/`（default.yaml、flashtalk.yaml、examples/）
+- 根 `backend/configs/`（default.yaml、flashtalk.yaml、examples/）
 - `src/opentalking/configs/`（flashtalk.yaml + models/*.yaml）
 - `src/opentalking/engine/configs/`（wan_multitalk_14B.py）
 - 根 `.env`、`.env.example`、`.env.flashtalk.example`、`.env.local.example`
-- 同名 `flashtalk.yaml` 在 `configs/` 和 `src/opentalking/configs/` 各一份——**不知谁覆盖谁**。
+- 同名 `flashtalk.yaml` 在 `backend/configs/` 和 `src/opentalking/configs/` 各一份——**不知谁覆盖谁**。
 
 ### 7. 接口定义未充分使用
 
@@ -68,7 +68,7 @@
 
 ### 8. 测试目录碎片化
 
-`tests/unit/` + `apps/api/tests/` + `apps/worker/tests/` 三处，没有顶层 `integration/` `e2e/`。
+`backend/tests/unit/` + `backend/tests/api/` + `apps/worker/tests/` 三处，没有顶层 `integration/` `e2e/`。
 
 ---
 
@@ -82,7 +82,7 @@
 3. **voice 拆分**：声音复刻（cloning）作为推理能力放进 `providers/tts/<vendor>/clone.py`；`packages/voice/` 仅做资产管理。
 4. **不在仓库内承担本地推理**：musetalk / wav2lip / wav2vec2 / FlashTalk 全部委托给推理服务（omnirt 为本月主路径）。**推理框架成为 opentalking 的运行时依赖**，仓库不再承载模型权重与本地推理代码。
 5. **顶层去 `models/`**：删除根目录 `models/`，权重由推理框架自行管理与部署。
-6. **统一 `.env.example`**：顶层一份权威模板，分组注释；部署形态差异走 `configs/profiles/*.yaml`。
+6. **统一 `.env.example`**：顶层一份权威模板，分组注释；部署形态差异走 `backend/configs/profiles/*.yaml`。
 7. **一键部署脚本**：`deploy/scripts/up.sh` 一次拉起【推理服务（omnirt）+ 后端（api/worker）+ 前端（web）+ Redis】。
 
 ---
@@ -136,14 +136,14 @@ opentalking/
 │   │   └── customer-service-anna/
 │   └── voices/
 │
-├── configs/                       # ⑩ 唯一配置中心
+├── backend/configs/                       # ⑩ 唯一配置中心
 │   ├── default.yaml
 │   ├── profiles/                  # 部署形态：cloud-only / self-hosted-omnirt / unified-dev
 │   ├── providers/                 # 各 provider 的可调参数
 │   └── inference/                 # 推理服务（omnirt / vllm）的接入端点配置
 │
 ├── deploy/                        # ⑪ 部署相关全部归位（含一键拉起）
-│   ├── docker/                    # 各服务 Dockerfile
+│   ├── deploy/                    # 各服务 Dockerfile
 │   ├── compose/                   # docker-compose（含 omnirt + redis + api + worker + web）
 │   └── scripts/
 │       ├── up.sh                  # ★ 一键拉起：推理服务 + 后端 + 前端 + Redis
@@ -172,7 +172,7 @@ appearance:
   frames: ./frames/                     # 可选
   synthesis:
     provider: flashtalk                 # 选 providers/synthesis/* 之一
-    endpoint_ref: inference.flashtalk   # 引用 configs/inference/*.yaml
+    endpoint_ref: inference.flashtalk   # 引用 backend/configs/inference/*.yaml
     params: { sampling_steps: 8 }
 voice:
   ref: voices/anna-clone-v2             # 引用 packages/voice 中资产
@@ -194,12 +194,12 @@ behavior:
 ## 四、最关键的 7 条解耦原则（持续演进的护栏）
 
 1. **能力域扁平化**：`providers/{stt,tts,llm,rtc,synthesis}` 全部同级，新增能力不再特殊对待。
-2. **唯一 Provider 注册表**：`core/registry.py` + 装饰器注册，`configs/*.yaml` 字符串 key 选择。**业务代码禁止 import 具体 provider 实现**。
+2. **唯一 Provider 注册表**：`core/registry.py` + 装饰器注册，`backend/configs/*.yaml` 字符串 key 选择。**业务代码禁止 import 具体 provider 实现**。
 3. **推理框架是依赖、不是仓库内代码**：FlashTalk / MuseTalk / Wav2Lip 等本地推理代码全部移除，仓库内只保留对接 omnirt / vllm 的 client。模型权重不进 git，由推理框架自行管理。
 4. **avatar 是聚合根**：所有"一个数字人"的描述（identity / appearance / voice / brain / behavior）汇于一份 manifest，引用 voice / inference / provider 的稳定 key。
 5. **voice 严格拆分**：克隆能力进 `providers/tts/<vendor>/clone.py`，资产管理留在 `packages/voice/`。
 6. **Worker 是 pipeline 的宿主**：`flashtalk_runner.py` 2528 行按"音频流→合成调用→编码→推流"切片，runner 内不留模型实现。
-7. **单一配置源**：`src/opentalking/configs` 和 `configs/` 不再双源；`engine/configs/wan_multitalk_14B.py` 这种"Python 当配置"全部迁出（如本就属于推理框架，则随推理代码一并移除）。
+7. **单一配置源**：`src/opentalking/configs` 和 `backend/configs/` 不再双源；`engine/configs/wan_multitalk_14B.py` 这种"Python 当配置"全部迁出（如本就属于推理框架，则随推理代码一并移除）。
 
 ---
 
@@ -209,12 +209,12 @@ behavior:
 > 旧链路（`engine/`、本仓内 FlashTalk 本地推理、`OPENTALKING_FLASHTALK_MODE` 等）一并删除。
 
 ### 阶段 1：清理 + 砍掉本地推理（半天）
-- 删 `apps/cli/`（保留 `src/opentalking/cli/` 或反之，二选一）。
+- 删 `backend/apps/cli/`（保留 `src/opentalking/cli/` 或反之，二选一）。
 - 删 `apps/worker/` 空壳。
 - 删根目录 `multitalk_utils.py` / `demo/` / `images/` 中非文档图 / 三份 `.env.*.example` / 顶层 `models/` 目录（如已存在）。
 - 删 `src/opentalking/engine/` **整体目录**。
 - 删 `src/opentalking/models/{flashtalk,musetalk,wav2lip}/` 中所有本地推理文件（`network.py` / `inference.py` / `face_detection.py` / `feature_extractor.py` / `layers.py` / `model_defs.py` / `audio.py` / `loader.py` 等），仅保留 client 部分（迁入新位置）。
-- 删 `src/opentalking/configs/` 整个目录（与根 `configs/` 双源）。
+- 删 `src/opentalking/configs/` 整个目录（与根 `backend/configs/` 双源）。
 - 删 `download_models.sh` 中本地推理权重相关下载（仅保留 omnirt 不负责的、本仓自己用的轻量资源，如有）。
 - 删 `OPENTALKING_FLASHTALK_MODE=local|remote|off` 配置项与所有 fallback 分支。
 - `pyproject.toml` 同步删除 `engine` extra 中的 torch / xfuser / xdit 等推理依赖。
@@ -225,7 +225,7 @@ behavior:
 - 现有 STT/TTS/LLM/RTC 适配器迁入 `providers/<能力>/<vendor>/`，对齐 `core/registry.py` 装饰器注册。
 - 新增 `providers/synthesis/`：单一 `OmniRTSynthesisAdapter` + 三个 provider key 注册（flashtalk / musetalk / wav2lip）。
 - `voices/bailian_clone.py` 移入 `providers/tts/dashscope/clone.py`；`voices/store.py` 移入 `packages/voice/store.py`。
-- `apps/api/` 与 `src/opentalking/server/` 合并为 `apps/api/`，删除 `_legacy.py`。
+- `backend/apps/api/` 与 `src/opentalking/server/` 合并为 `backend/apps/api/`，删除 `_legacy.py`。
 
 ### 阶段 3：avatar 聚合根 + pipeline 重写（3–5 天）
 - 实现 `packages/avatar/{manifest,store,validator,assemble,loader}.py`，schema 按 § 七.5 终态。
@@ -237,11 +237,11 @@ behavior:
 ### 阶段 4：一键部署（2–3 天）
 - `deploy/compose/`：cuda / ascend / cpu / dev 四份 compose（omnirt + redis + api + worker + web）。
 - `deploy/scripts/`：`install.sh` / `install_native.sh` / `install_docker.sh` / `up.sh` / `down.sh` / `detect_hardware.sh` / `ensure_omnirt.sh` / `download_flashtalk.sh`。
-- `configs/inference/omnirt.yaml`：端点 + 任务面 + 模型映射。
-- `configs/profiles/{cuda-3090,cuda-4090,ascend-910b,cpu-demo}.yaml`。
+- `backend/configs/inference/omnirt.yaml`：端点 + 任务面 + 模型映射。
+- `backend/configs/profiles/{cuda-3090,cuda-4090,ascend-910b,cpu-demo}.yaml`。
 
 ### 阶段 5：测试与文档（2–3 天）
-- 测试合并到顶层 `tests/{unit,integration,e2e}/`，删 `apps/api/tests`、`apps/worker/tests` 残留。
+- 测试合并到顶层 `tests/{unit,integration,e2e}/`，删 `backend/tests/api`、`apps/worker/tests` 残留。
 - README / quickstart / deployment / configuration / avatar-format / hardware 同步重写（详见 § 九）。
 - 删 `docs/flashtalk-omnirt.md`（omnirt 已是默认路径，无独立文档必要）。
 
@@ -252,8 +252,8 @@ behavior:
 ## 六、问题清单速览（可作为 backlog）
 
 ### 物理清理
-- [ ] `apps/cli` ↔ `src/opentalking/cli` 重复
-- [ ] `apps/api` ↔ `src/opentalking/server` 职责重叠 + `_legacy.py` 残留
+- [ ] `backend/apps/cli` ↔ `src/opentalking/cli` 重复
+- [ ] `backend/apps/api` ↔ `src/opentalking/server` 职责重叠 + `_legacy.py` 残留
 - [ ] `apps/worker/` 空壳与 `src/opentalking/worker/` 命名不一致
 - [ ] 根目录 `multitalk_utils.py` 未归位（26K 行）
 - [ ] 根目录 `demo/` 媒体文件入仓
@@ -276,9 +276,9 @@ behavior:
 - [ ] avatar 升级为聚合根 manifest（identity + appearance + voice + brain + behavior）
 - [ ] `voices/bailian_clone.py` 推理逻辑迁至 `providers/tts/dashscope_*/clone.py`
 - [ ] `packages/voice/` 收回为纯资产管理
-- [ ] `configs/` 与 `src/opentalking/configs/` 双源消除
+- [ ] `backend/configs/` 与 `src/opentalking/configs/` 双源消除
 - [ ] `engine/configs/wan_multitalk_14B.py`（Python 当配置）随推理代码迁出
-- [ ] `configs/inference/` 落地推理服务端点配置
+- [ ] `backend/configs/inference/` 落地推理服务端点配置
 
 ### Worker 拆分
 - [ ] `flashtalk_runner.py` 2528 行 → `pipeline/speak/` 多文件
@@ -286,7 +286,7 @@ behavior:
 - [ ] `task_consumer.py` 504 行 拆分
 
 ### 测试与部署
-- [ ] 测试目录三处分散（`tests/unit` + `apps/api/tests` + `apps/worker/tests`）合并
+- [ ] 测试目录三处分散（`tests/unit` + `backend/tests/api` + `apps/worker/tests`）合并
 - [ ] `deploy/scripts/up.sh` 一键拉起脚本
 - [ ] `deploy/compose/` 完整编排（omnirt + redis + api + worker + web）
 - [ ] `core/interfaces/` 已建但未强制使用
@@ -326,10 +326,10 @@ behavior:
 | 阶段 | 模块 | 职责 |
 |---|---|---|
 | **能力发现** | `providers/*` + `core/registry.py` | 注册所有 STT/TTS/LLM/synthesis 实现 |
-|  | `apps/api/routes/catalog.py`（新增） | `GET /catalog/synthesis` / `GET /catalog/tts` / `GET /catalog/voices` —— 前端拉下拉框选项 |
-| **用户编辑** | `apps/web` | 表单 UI：选模型 / 选音色 / 写 prompt / 上传图 |
-|  | `apps/api/routes/avatars.py` | `POST /avatars` 创建 / `PATCH /avatars/{id}` / `POST /avatars/{id}/appearance` 上传 |
-|  | `apps/api/services/avatar_service.py` | 入参校验、调用 store、写入 profile |
+|  | `backend/apps/api/modules/catalog.py`（新增） | `GET /catalog/synthesis` / `GET /catalog/tts` / `GET /catalog/voices` —— 前端拉下拉框选项 |
+| **用户编辑** | `frontend` | 表单 UI：选模型 / 选音色 / 写 prompt / 上传图 |
+|  | `backend/apps/api/modules/avatars/router.py` | `POST /avatars` 创建 / `PATCH /avatars/{id}` / `POST /avatars/{id}/appearance` 上传 |
+|  | `backend/apps/api/modules/avatar_service.py` | 入参校验、调用 store、写入 profile |
 | **资产持有** | `packages/avatar/` | **AvatarProfile schema + store + validator + assemble** |
 |  | `packages/voice/` | voice_id 索引、试听文件、与 avatar 的引用 |
 | **运行装配** | `packages/avatar/assemble.py` | profile → ResolvedDigitalHuman（核心解析器） |
@@ -342,7 +342,7 @@ behavior:
 [Web]  POST /sessions { avatar_id }
    │
    ▼
-[apps/api]  routes/sessions.py
+[backend/apps/api]  routes/sessions.py
    │  ① 查 AvatarProfile  → packages/avatar/store.get(avatar_id)
    │  ② 校验运行可达性    → packages/avatar/validator.check_runtime(profile)
    │                          - synthesis provider 注册存在？
@@ -355,7 +355,7 @@ behavior:
    │  ⑤ resolved = avatar.assemble(profile)        ← 桥接点
    │       │
    │       ├─ synthesis = registry.get("synthesis", profile.appearance.synthesis.provider)
-   │       │             .bind(endpoint=configs/inference/<ref>.yaml)
+   │       │             .bind(endpoint=backend/configs/inference/<ref>.yaml)
    │       ├─ tts       = registry.get("tts", profile.voice.tts.provider)
    │       │             .bind(voice_id=voice.store.resolve(profile.voice.ref))
    │       ├─ llm       = registry.get("llm", profile.brain.llm.provider)
@@ -416,7 +416,7 @@ appearance:
   frames: ./frames/                     # 可选
   synthesis:
     provider: flashtalk                 # → providers/synthesis/flashtalk
-    endpoint_ref: omnirt.flashtalk      # → configs/inference/omnirt.yaml#flashtalk
+    endpoint_ref: omnirt.flashtalk      # → backend/configs/inference/omnirt.yaml#flashtalk
     params: { sampling_steps: 8 }
 voice:
   ref: voices/anna-clone-v2             # → packages/voice store
@@ -443,7 +443,7 @@ GET /catalog/voices        → [{ id: "anna-clone-v2", name: "Anna", preview_url
 GET /catalog/personas      → 内置性格预设
 ```
 
-来源：`core/registry.py` 自动汇聚 + `configs/inference/*.yaml` 端点元数据。**新接一个 provider，前端下拉框自动多一项**。
+来源：`core/registry.py` 自动汇聚 + `backend/configs/inference/*.yaml` 端点元数据。**新接一个 provider，前端下拉框自动多一项**。
 
 ---
 
@@ -455,7 +455,7 @@ GET /catalog/personas      → 内置性格预设
 
 1. **omnirt 唯一推理路径**：FlashTalk / MuseTalk / Wav2Lip 全部走 [omnirt](https://github.com/datascale-ai/omnirt)；本仓内**不再有任何本地推理代码**。
 2. **install.sh 是入口，compose 是核心**：用户实际运行的是 docker-compose；install.sh 只做硬件探测 + 选 profile + 调 compose。
-3. **profile 统一文件**：单一 `.env.example` + `configs/profiles/*.yaml` + `configs/inference/omnirt.yaml`，三者职责正交。
+3. **profile 统一文件**：单一 `.env.example` + `backend/configs/profiles/*.yaml` + `backend/configs/inference/omnirt.yaml`，三者职责正交。
 4. **新结构落地优先**：Week 1 直接以 § 三 目标分层为准搬家，**不保留旧目录与旧 ENV 变量**（无外部用户，无兼容包袱）。
 
 ### 8.2 交付物清单（按优先级）
@@ -518,7 +518,7 @@ echo "✅ OpenTalking is up at http://localhost:8000"
 
 ```
 .env.example                            # 唯一权威（顶层）
-configs/
+backend/configs/
 ├── default.yaml
 ├── profiles/
 │   ├── cuda-3090.yaml                  # 默认 musetalk / wav2lip
@@ -565,7 +565,7 @@ OPENAI_MODEL=qwen2.5-72b-instruct
 
 ```
 
-`configs/inference/omnirt.yaml`（avatar manifest 通过 `endpoint_ref` 引用）：
+`backend/configs/inference/omnirt.yaml`（avatar manifest 通过 `endpoint_ref` 引用）：
 
 ```yaml
 endpoints:
@@ -589,21 +589,21 @@ endpoints:
 
 #### C. 旧代码删除 —— P0（无前向兼容包袱）
 
-- [ ] 删 `apps/cli/` 和 `src/opentalking/cli/` 中的重复，二选一保留并更新 pyproject scripts。
+- [ ] 删 `backend/apps/cli/` 和 `src/opentalking/cli/` 中的重复，二选一保留并更新 pyproject scripts。
 - [ ] 删 `apps/worker/` 空壳目录。
 - [ ] 删根目录 `multitalk_utils.py` / `demo/` / `images/` 中非文档图。
 - [ ] 删三份 `.env.*.example`，新建顶层唯一 `.env.example`。
-- [ ] 删 `src/opentalking/configs/`（双源），统一到根 `configs/`。
+- [ ] 删 `src/opentalking/configs/`（双源），统一到根 `backend/configs/`。
 - [ ] **删 `src/opentalking/engine/` 整个目录**（FlashTalk 本地推理）。
 - [ ] **删 `src/opentalking/models/{flashtalk,musetalk,wav2lip}/` 中的本地推理实现**，仅保留外部调用 client 部分（迁入 `providers/synthesis/`）。
 - [ ] 删 `OPENTALKING_FLASHTALK_MODE` 配置项与所有相关 fallback 分支。
 - [ ] `pyproject.toml` 的 `engine` extra 中 torch / xfuser / xdit / accelerate / diffusers 等推理依赖移除。
-- [ ] 删 `apps/api/_legacy.py` 和 `src/opentalking/server/_legacy.py`。
+- [ ] 删 `backend/apps/api/_legacy.py` 和 `src/opentalking/server/_legacy.py`。
 - [ ] 删 `docs/flashtalk-omnirt.md`、`docs/flashtalk-omnirt.en.md`（合入 deployment.md）。
 
 #### D. omnirt client（在最终目录直接落位）—— P0
 
-`opentalking/providers/synthesis/omnirt.py`：
+`backend/opentalking/providers/synthesis/omnirt.py`：
 
 ```python
 class OmniRTSynthesisAdapter(SynthesisAdapter):
@@ -619,7 +619,7 @@ register("synthesis", "wav2lip",   lambda cfg: OmniRTSynthesisAdapter(cfg.endpoi
 
 #### E. Hardware profile 框架 —— P1
 
-`configs/profiles/cuda-4090.yaml`：
+`backend/configs/profiles/cuda-4090.yaml`：
 
 ```yaml
 hardware:
@@ -639,7 +639,7 @@ omnirt:
   optional_models: [soulx-flashtalk-14b]
 ```
 
-`configs/profiles/ascend-910b.yaml`：
+`backend/configs/profiles/ascend-910b.yaml`：
 
 ```yaml
 hardware:
@@ -652,7 +652,7 @@ omnirt:
   required_models: [soulx-flashtalk-14b]
 ```
 
-启动时 `apps/api/main.py` 打印：
+启动时 `backend/apps/api/main.py` 打印：
 
 ```
 Hardware profile: cuda-4090 (auto-detected)

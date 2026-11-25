@@ -40,7 +40,7 @@ mkdir -p "$OPENTALKING_LOCAL_AUDIO_MODEL_ROOT"
 export HF_ENDPOINT="${HF_ENDPOINT:-https://hf-mirror.com}"
 # Some networks repeatedly fail on the HF Xet/CAS path; prefer plain HTTP downloads.
 export HF_HUB_DISABLE_XET="${HF_HUB_DISABLE_XET:-1}"
-uv sync --extra dev --extra models --extra local-audio --extra quicktalk-cuda --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --extra local-audio --extra quicktalk-cuda --python 3.11
 
 python scripts/download_local_audio_models.py \
   --root "$OPENTALKING_LOCAL_AUDIO_MODEL_ROOT" \
@@ -160,5 +160,5 @@ with a pid file.
 | Sidecar API path mismatch | Check that the sidecar port and path match `OPENTALKING_TTS_LOCAL_INDEXTTS_SERVICE_URL`; the default port is `19092`. |
 | Downloads repeatedly mention `cas-bridge.xethub.hf.co` or SSL resume | Keep `HF_HUB_DISABLE_XET=1` and rerun the same download command; the script reuses fully downloaded model directories. If needed, temporarily use `HF_ENDPOINT=https://huggingface.co`. |
 | Missing downloaded files | Re-run the download script and confirm all five `indextts2*` model directories exist. |
-| QuickTalk reports `onnxruntime` has no `InferenceSession` | Re-run `uv sync --extra dev --extra models --extra local-audio --extra quicktalk-cuda --python 3.11`; on CPU replace `quicktalk-cuda` with `quicktalk-cpu`. |
+| QuickTalk reports `onnxruntime` has no `InferenceSession` | Re-run `UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --extra local-audio --extra quicktalk-cuda --python 3.11`; on CPU replace `quicktalk-cuda` with `quicktalk-cpu`. |
 | Dependency conflicts | Keep the IndexTTS runtime in its own venv and do not install it into OpenTalking's main `.venv`. |

@@ -22,7 +22,7 @@ export PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
 export UV_HTTP_TIMEOUT=300
 
 cd "$OPENTALKING_HOME"
-uv sync --extra dev --extra models --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --python 3.11
 uv pip install --python .venv/bin/python pip "setuptools<81" openmim
 ```
 

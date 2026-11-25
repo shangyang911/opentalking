@@ -37,11 +37,11 @@ chmod +x scripts/quickstart/start_omnirt_quicktalk.sh
 Confirm default benchmark inputs exist:
 
 ```bash
-ls -lh configs/benchmark/input/reference.png
-ls -lh configs/benchmark/input/ttsmaker-file.mp3
+ls -lh backend/configs/benchmark/input/reference.png
+ls -lh backend/configs/benchmark/input/ttsmaker-file.mp3
 ```
 
-To replace the test avatar or audio, simply replace the two files above, or modify the input paths in `configs/benchmark/opentalking-e2e.yaml`. For general deployment verification, the repository's built-in benchmark inputs are sufficient.
+To replace the test avatar or audio, simply replace the two files above, or modify the input paths in `backend/configs/benchmark/opentalking-e2e.yaml`. For general deployment verification, the repository's built-in benchmark inputs are sufficient.
 
 Set low-VRAM environment variables:
 
@@ -185,7 +185,7 @@ Record GPU/NPU model, driver version, peak and steady memory usage, CPU limits, 
 
 ```bash title="Terminal"
 source .venv/bin/activate
-python apps/cli/quicktalk_bench.py \
+python backend/apps/cli/quicktalk_bench.py \
   --asset-root /path/to/quicktalk/assets \
   --template-video /path/to/template.mp4 \
   --audio /path/to/input.wav \

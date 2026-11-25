@@ -20,7 +20,7 @@ opentalking/
 │   ├── unified/          # 单进程入口
 │   ├── cli/              # 命令行工具
 │   └── web/              # React 前端（TypeScript、Vite）
-├── configs/              # default.yaml、profiles/*、synthesis/*
+├── backend/configs/              # default.yaml、profiles/*、synthesis/*
 ├── scripts/quickstart/   # 启停辅助脚本
 ├── examples/avatars/     # 示例 Avatar bundle
 ├── tests/                # pytest 套件
@@ -32,13 +32,13 @@ opentalking/
 ```bash title="终端"
 git clone https://github.com/datascale-ai/opentalking.git
 cd opentalking
-uv sync --extra dev --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --python 3.11
 source .venv/bin/activate
 pre-commit install
 ```
 
 `[dev]` extra 安装 `ruff`、`pytest`、`pytest-asyncio`、`pytest-cov` 等开发依赖。
-如需兼容 fallback，可改用 `python3 -m venv .venv && source .venv/bin/activate && pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e ".[dev]"`。
+如需兼容 fallback，可改用 `python3 -m venv .venv && source .venv/bin/activate && pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e "./backend[dev]"`。
 
 ## 本地运行
 
@@ -64,7 +64,7 @@ uvicorn apps.unified.main:app --reload --port 8000
 前端在独立终端中运行：
 
 ```bash title="终端"
-cd apps/web && npm ci && npm run dev -- --host 0.0.0.0
+cd frontend && npm ci && npm run dev -- --host 0.0.0.0
 ```
 
 Vite 默认启用 HMR；后端修改须重启，或使用 `uvicorn --reload`。
@@ -106,7 +106,7 @@ python -m apps.worker.main --port 9001
 ```
 
 ```bash title="终端：前端"
-cd apps/web && npm run dev -- --host 0.0.0.0
+cd frontend && npm run dev -- --host 0.0.0.0
 ```
 
 共四个进程并发运行。使用 `redis-cli MONITOR` 观察总线流量。
@@ -116,7 +116,7 @@ cd apps/web && npm run dev -- --host 0.0.0.0
 后端已在其他主机运行时：
 
 ```bash title="终端"
-cd apps/web
+cd frontend
 export VITE_BACKEND_URL=http://teammate-host:8000
 npm run dev -- --host 0.0.0.0
 ```
@@ -202,7 +202,7 @@ curl -s -X POST http://127.0.0.1:8000/sessions/<id>/speak \
 
 | 现象 | 可能原因 |
 |------|---------|
-| `ModuleNotFoundError: opentalking` | 未执行 `uv sync --extra dev --python 3.11`，或未使用兼容 fallback 安装 `pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e ".[dev]"`。 |
+| `ModuleNotFoundError: opentalking` | 未执行 `UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --python 3.11`，或未使用兼容 fallback 安装 `pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e "./backend[dev]"`。 |
 | 浏览器提示 WebRTC 不可用 | 浏览器在非 HTTPS、非 localhost origin 上拒绝 WebRTC。 |
 | Worker 日志输出 `redis connection refused` | 切换至 unified 模式，或先启动 `redis-server`。 |
 | 测试在 `await ws.send_text()` 卡住 | `OPENTALKING_TEST_LIVE` 已开启但真实服务不可达。 |

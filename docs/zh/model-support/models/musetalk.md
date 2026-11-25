@@ -68,7 +68,7 @@ local MuseTalk 实时推理；官方预处理会自动用 `OPENTALKING_MUSETALK_
 
 OmniRT 路径：
 
-```yaml title="configs/default.yaml"
+```yaml title="backend/configs/default.yaml"
 models:
   musetalk:
     backend: omnirt
@@ -76,7 +76,7 @@ models:
 
 local 路径：
 
-```yaml title="configs/default.yaml"
+```yaml title="backend/configs/default.yaml"
 models:
   musetalk:
     backend: local

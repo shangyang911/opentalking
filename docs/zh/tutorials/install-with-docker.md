@@ -7,7 +7,7 @@ Docker Compose 安装方式为 OpenTalking 提供打包后的部署栈，更适�
 
 打包栈运行特征如下：
 
-- 编排服务（API、Worker、前端、Redis）由 `docker/` 下的 Dockerfile 构建。
+- 编排服务（API、Worker、前端、Redis）由 `deploy/` 下的 Dockerfile 构建。
 - 推理运行时（OmniRT）由 `ghcr.io/datascale-ai/omnirt` 拉取，按 Compose profile 启用。
 - 部署场景通过 Compose profile 切换，而非不同的 Compose 文件路径。
 
@@ -20,18 +20,18 @@ Docker Compose 安装方式为 OpenTalking 提供打包后的部署栈，更适�
 
 | 文件 | 用途 |
 |------|------|
-| `docker-compose.yml` | 基础文件。无条件定义 `redis`、`api`、`worker`、`web` 服务。在 `gpu` profile 下定义 `omnirt`。 |
-| `docker-compose.gpu.yml` | `gpu` profile 启用时叠加的 override。将 `api` 与 `worker` 接到 OmniRT，并关闭 mock 合成。 |
+| `deploy/compose.yml` | 基础文件。无条件定义 `redis`、`api`、`worker`、`web` 服务。在 `gpu` profile 下定义 `omnirt`。 |
+| `deploy/compose.gpu.yml` | `gpu` profile 启用时叠加的 override。将 `api` 与 `worker` 接到 OmniRT，并关闭 mock 合成。 |
 
 由本地 Dockerfile 构建的容器：
 
 | 容器 | Dockerfile | 用途 |
 |------|-----------|------|
-| `api` | `docker/Dockerfile.api` | FastAPI 服务，端口 8000。 |
-| `worker` | `docker/Dockerfile.worker` | 异步流水线执行器。 |
-| `web` | `docker/Dockerfile.web` | Vite 构建后的前端，由 nginx 代理，端口 5173。 |
+| `api` | `deploy/Dockerfile.api` | FastAPI 服务，端口 8000。 |
+| `worker` | `deploy/Dockerfile.worker` | 异步流水线执行器。 |
+| `web` | `deploy/Dockerfile.web` | Vite 构建后的前端，由 nginx 代理，端口 5173。 |
 
-`docker/Dockerfile.flashtalk` 与 `docker/Dockerfile.flashtalk.ascend` 用于历史的
+`deploy/Dockerfile.flashtalk` 与 `deploy/Dockerfile.flashtalk.ascend` 用于历史的
 裸金属 FlashTalk 部署，**不**由默认 Compose 栈调用。
 
 ## 前置条件
@@ -63,7 +63,7 @@ OPENTALKING_STT_DEFAULT_PROVIDER=dashscope
 OPENTALKING_STT_DASHSCOPE_API_KEY=<dashscope-api-key>
 ```
 
-Compose 栈通过 `docker-compose.yml` 中的 `env_file` 指令自动读取 `.env`。
+Compose 栈通过 `deploy/compose.yml` 中的 `env_file` 指令自动读取 `.env`。
 
 ### 启动
 
@@ -115,7 +115,7 @@ docker compose down -v
 
 ```bash title="终端"
 docker compose --profile gpu \
-  -f docker-compose.yml -f docker-compose.gpu.yml \
+  -f deploy/compose.yml -f deploy/compose.gpu.yml \
   up -d
 ```
 
@@ -154,7 +154,7 @@ curl -s http://localhost:8000/models | jq
 
 ```bash title="终端"
 docker compose --profile gpu \
-  -f docker-compose.yml -f docker-compose.gpu.yml \
+  -f deploy/compose.yml -f deploy/compose.gpu.yml \
   down
 ```
 
@@ -170,7 +170,7 @@ Compose 栈写入以下持久化状态：
 | Redis 数据 | 具名卷 | 会话状态与 FlashTalk 队列。 |
 
 生产部署应将 avatar 与音色目录从宿主机存储绑定挂载，而非使用匿名卷；具体挂载位置
-在 `docker-compose.yml` 的 `volumes` 节中定义。
+在 `deploy/compose.yml` 的 `volumes` 节中定义。
 
 ## Docker 部署的 .env 结构
 

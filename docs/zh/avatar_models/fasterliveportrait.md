@@ -14,7 +14,7 @@
 |------|------|
 | `/models` 中是 `runtime_not_enabled` | 确认 OmniRT 启动时设置了 `OMNIRT_FASTLIVEPORTRAIT_RUNTIME=1`，并检查 checkpoint 路径和 `logs/omnirt`。 |
 | 音频驱动没有口型 | 检查 `JoyVASA/motion_generator`、`JoyVASA/motion_template` 和 `chinese-hubert-base/pytorch_model.bin`。 |
-| 生成报 ONNXRuntime `GridSample` 错误 | 重新执行 `uv sync --extra server --extra fasterliveportrait --python 3.11`，确认 `import tensorrt` 成功，并使用 `OMNIRT_FASTLIVEPORTRAIT_CFG=configs/trt_infer.yaml`。 |
+| 生成报 ONNXRuntime `GridSample` 错误 | 重新执行 `uv sync --extra server --extra fasterliveportrait --python 3.11`，确认 `import tensorrt` 成功，并使用 `OMNIRT_FASTLIVEPORTRAIT_CFG=backend/configs/trt_infer.yaml`。 |
 | 浏览器能看到模型但创建会话失败 | 选择 `model_type` 匹配 `fasterliveportrait` 的 avatar，或准备对应 avatar bundle。 |
 
 
@@ -85,7 +85,7 @@ OMNIRT_FASTLIVEPORTRAIT_RUNTIME=1 \
 OMNIRT_FASTLIVEPORTRAIT_LOAD_MODELS=1 \
 OMNIRT_FASTLIVEPORTRAIT_ROOT="$FASTERLIVEPORTRAIT_HOME" \
 OMNIRT_FASTLIVEPORTRAIT_CHECKPOINTS_DIR="$OMNIRT_MODEL_ROOT/FasterLivePortrait/checkpoints" \
-OMNIRT_FASTLIVEPORTRAIT_CFG=configs/trt_infer.yaml \
+OMNIRT_FASTLIVEPORTRAIT_CFG=backend/configs/trt_infer.yaml \
 OMNIRT_FASTLIVEPORTRAIT_DEVICE=cuda:0 \
 OMNIRT_FASTLIVEPORTRAIT_JPEG_QUALITY=85 \
 uv run omnirt serve-avatar-ws --host 0.0.0.0 --port 9000 --backend cuda
@@ -105,9 +105,9 @@ curl -s http://127.0.0.1:9000/v1/audio2video/models | jq '.statuses[] | select(.
 
 ## 4. 配置并启动 OpenTalking
 
-OpenTalking 默认把 `fasterliveportrait` 配成 `backend: omnirt`。实时档参数位于 `configs/synthesis/fasterliveportrait.yaml`，常用默认值：
+OpenTalking 默认把 `fasterliveportrait` 配成 `backend: omnirt`。实时档参数位于 `backend/configs/synthesis/fasterliveportrait.yaml`，常用默认值：
 
-```yaml title="configs/synthesis/fasterliveportrait.yaml"
+```yaml title="backend/configs/synthesis/fasterliveportrait.yaml"
 width: 448
 fps: 25
 chunk_samples: 16000
@@ -141,7 +141,7 @@ uv run opentalking-unified --host 0.0.0.0 --port 8000
 前端：
 
 ```bash title="终端"
-cd "$OPENTALKING_HOME/apps/web"
+cd "$OPENTALKING_HOME/frontend"
 npm ci
 VITE_BACKEND_PORT=8000 npm run dev -- --host 0.0.0.0 --port 5173
 ```

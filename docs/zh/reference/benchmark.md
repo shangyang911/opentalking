@@ -57,11 +57,11 @@ chmod +x scripts/quickstart/start_omnirt_quicktalk.sh
 确认 benchmark 默认输入存在：
 
 ```bash
-ls -lh configs/benchmark/input/reference.png
-ls -lh configs/benchmark/input/ttsmaker-file.mp3
+ls -lh backend/configs/benchmark/input/reference.png
+ls -lh backend/configs/benchmark/input/ttsmaker-file.mp3
 ```
 
-如果要替换测试头像或音频，直接替换上面两个文件，或修改 `configs/benchmark/opentalking-e2e.yaml` 中的输入路径即可。一般部署验证时，使用仓库自带 benchmark 输入即可。
+如果要替换测试头像或音频，直接替换上面两个文件，或修改 `backend/configs/benchmark/opentalking-e2e.yaml` 中的输入路径即可。一般部署验证时，使用仓库自带 benchmark 输入即可。
 
 设置低显存环境变量：
 
@@ -226,11 +226,11 @@ QuickTalk 和 Wav2Lip 的首次 Avatar 初始化可能较慢，后续命中缓�
 
 ### QuickTalk 本地 adapter
 
-仓库提供 `apps/cli/quicktalk_bench.py`，用于直接测 QuickTalk 本地 adapter 的加载、首帧、渲染和 mux 时间。
+仓库提供 `backend/apps/cli/quicktalk_bench.py`，用于直接测 QuickTalk 本地 adapter 的加载、首帧、渲染和 mux 时间。
 
 ```bash title="终端"
 source .venv/bin/activate
-python apps/cli/quicktalk_bench.py \
+python backend/apps/cli/quicktalk_bench.py \
   --asset-root /path/to/quicktalk/assets \
   --template-video /path/to/template.mp4 \
   --audio /path/to/input.wav \

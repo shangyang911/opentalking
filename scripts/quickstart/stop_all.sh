@@ -58,7 +58,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 run_dir="$DIGITAL_HUMAN_HOME/run"
-web_dir="$repo_root/apps/web"
+web_dir="$repo_root/frontend"
 
 summary_services=()
 summary_targets=()

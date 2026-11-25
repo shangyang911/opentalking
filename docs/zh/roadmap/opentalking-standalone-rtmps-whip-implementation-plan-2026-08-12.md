@@ -30,16 +30,16 @@ RTMPS 和 WHIP 是**媒体输出协议**；`start`、`speak`、`interrupt`、`st
 
 | 能力 | 当前实现 | 本次处理方式 |
 | --- | --- | --- |
-| Session 创建 | `apps/api/routes/sessions.py`、`apps/api/services/session_service.py` | 保留并扩展输出控制 |
+| Session 创建 | `backend/apps/api/modules/conversation/sessions.py`、`backend/apps/api/modules/conversation/service.py` | 保留并扩展输出控制 |
 | 文本口播 | `POST /sessions/{session_id}/speak` | 保留 `replace` 语义，补充命令关联 |
 | 打断 | `POST /sessions/{session_id}/interrupt` | 保留并让所有输出分支同步结束 |
-| 浏览器实时播放 | `opentalking/providers/rtc/aiortc/adapter.py` | 保留为独立 WebRTC 播放分支 |
+| 浏览器实时播放 | `backend/opentalking/providers/rtc/aiortc/adapter.py` | 保留为独立 WebRTC 播放分支 |
 | 数字人渲染 | `SessionRunner` 与 `FlashTalkRunner` | 两条路径都接入统一 ProgramSink |
 | 音频 | `AudioChunk`，通常为 16 kHz、单声道、int16 PCM | 统一重采样到节目音频时钟 |
 | 视频 | `VideoFrameData`，BGR/RGB `uint8` ndarray | 统一尺寸、FPS 和节目时间戳 |
 | 任务转发 | Redis List 或 unified 模式的 `InMemoryRedis` | 复用，不把原始帧放入 Redis |
 | 事件通知 | Redis Pub/Sub + SSE | 增加输出状态事件；不宣称可重放 |
-| 离线视频生成 | `apps/api/routes/video_creation.py` 等 | 不改、不接入 RTMPS/WHIP |
+| 离线视频生成 | `backend/apps/api/modules/video_creation/router.py` 等 | 不改、不接入 RTMPS/WHIP |
 
 当前 WebRTC 是浏览器发送 offer、OpenTalking 返回 answer 的 **answerer/playback** 模式。它不能直接拿来做 WHIP，因为 WHIP 发布端必须由 OpenTalking 创建 offer 并向外部 ingest POST SDP。
 
@@ -48,13 +48,13 @@ RTMPS 和 WHIP 是**媒体输出协议**；`start`、`speak`、`interrupt`、`st
 实现前必须承认以下事实，不能在代码或文档中假装它们已经存在：
 
 1. 当前 `SessionRunner` 和 `FlashTalkRunner` 都主要向 `self.webrtc` 写帧，没有 transport-neutral 的节目输出层。
-2. 两类 runner 都必须改；只改 `opentalking/pipeline/session/runner.py` 会漏掉 QuickTalk/OmniRT/FlashTalk 等实际路径使用的 `FlashTalkRunner`。
+2. 两类 runner 都必须改；只改 `backend/opentalking/pipeline/session/runner.py` 会漏掉 QuickTalk/OmniRT/FlashTalk 等实际路径使用的 `FlashTalkRunner`。
 3. 当前 idle 循环主要发送视频，不能保证外部输出需要的连续静音音频。
 4. 当前 WebRTC track 是单队列消费者；同一个队列不能同时给 Studio 浏览器和 WHIP 消费，否则两个 `recv()` 会竞争并分走帧。
 5. 当前每轮 speech 可能把 source timestamp 清零；外部输出必须使用独立、连续、不回退的 ProgramClock。
 6. 当前 `speak` 是“先 interrupt，再写任务”，没有跨重试的 `command_id`/幂等收据。
 7. 当前没有 RTMP/RTMPS、WHIP/WHEP、MediaMTX 或 SRS 测试服务。
-8. `docker/Dockerfile.api`、`docker/Dockerfile.worker` 和 `docker/Dockerfile.flashtalk` 使用 `COPY src ./src`，而仓库实际为 flat layout，`src/` 不存在；容器集成前必须修复并验证相关 Docker 构建。根 `docker-compose.yml` 还必须显式给 API 设置 `OPENTALKING_WORKER_URL=http://worker:9001`。
+8. `deploy/Dockerfile.api`、`deploy/Dockerfile.worker` 和 `deploy/Dockerfile.flashtalk` 使用 `COPY src ./src`，而仓库实际为 flat layout，`src/` 不存在；容器集成前必须修复并验证相关 Docker 构建。根 `deploy/compose.yml` 还必须显式给 API 设置 `OPENTALKING_WORKER_URL=http://worker:9001`。
 9. 当前不存在 Enterprise 控制面。本次不要把 Enterprise 文档中的 `/integrations/v1`、PostgreSQL、租户或 webhook 代码搬进来。
 
 ### 1.3 当前已验证的基线
@@ -63,8 +63,8 @@ RTMPS 和 WHIP 是**媒体输出协议**；`start`、`speak`、`interrupt`、`st
 
 ```bash
 cd /home/lyf/opentalking
-.venv/bin/pytest tests/unit/test_aiortc_adapter.py \
-  tests/unit/test_session_runner_media_events.py -q
+.venv/bin/pytest backend/tests/unit/test_aiortc_adapter.py \
+  backend/tests/unit/test_session_runner_media_events.py -q
 .venv/bin/ruff check opentalking apps tests
 git status --short --branch
 ```
@@ -171,11 +171,11 @@ flowchart LR
 
 任务工厂会根据 backend 把会话构造成不同 runner。实施时必须检查并覆盖：
 
-- `opentalking/pipeline/session/runner.py` 的 `SessionRunner`。
-- `opentalking/pipeline/speak/synthesis_runner.py` 的 `FlashTalkRunner`（`FlashTalkSessionRunner` 别名也要覆盖）。
-- `opentalking/runtime/task_consumer.py` 的 runner 创建、`speak`、`interrupt`、`close` 分发。
-- `opentalking/runtime/server.py`（split worker 持有 runner）。
-- `apps/unified/main.py`（unified 模式持有 runner）。
+- `backend/opentalking/pipeline/session/runner.py` 的 `SessionRunner`。
+- `backend/opentalking/pipeline/speak/synthesis_runner.py` 的 `FlashTalkRunner`（`FlashTalkSessionRunner` 别名也要覆盖）。
+- `backend/opentalking/runtime/task_consumer.py` 的 runner 创建、`speak`、`interrupt`、`close` 分发。
+- `backend/opentalking/runtime/server.py`（split worker 持有 runner）。
+- `backend/apps/unified/main.py`（unified 模式持有 runner）。
 
 `OPENTALKING_STREAMING_ENABLED=true` 时，两类 runner 均只调用如下抽象，不直接访问 output 实现；flag=false 时保留当前直接 WebRTC sink，作为可验证的兼容/回滚路径：
 
@@ -393,7 +393,7 @@ SSE 是实时通知，不是可靠事件日志；断线客户端通过 GET 状�
 
 ### 5.1 原始媒体契约
 
-扩展 `opentalking/core/types/frames.py` 或新增 `opentalking/streaming/types.py`，至少定义：
+扩展 `backend/opentalking/core/types/frames.py` 或新增 `backend/opentalking/streaming/types.py`，至少定义：
 
 ```python
 @dataclass(slots=True)
@@ -496,7 +496,7 @@ Audio: AAC-LC, 48 kHz, stereo（mono 源复制到双声道）
 
 实现顺序：
 
-1. 先实现 `opentalking/streaming/destinations/rtmps.py` 的 publisher 接口和 PyAV/libavformat spike。
+1. 先实现 `backend/opentalking/streaming/destinations/rtmps.py` 的 publisher 接口和 PyAV/libavformat spike。
 2. 优先使用进程内 PyAV，避免 stream key 出现在 `/proc/<pid>/cmdline`。
 3. 若经过 Phase 0 spike 证明目标环境的 PyAV 不能稳定完成 RTMPS publish，才允许使用隔离的 FFmpeg supervisor；此时文档和日志必须明确：stream key 可能出现在同机进程参数中，不能声称“绝不出现在 proc args”。
 4. 无论实现选择如何，禁止 shell 拼接；FFmpeg 只能用 `create_subprocess_exec` 的 argv 数组，stderr 必须脱敏。
@@ -609,7 +609,7 @@ aiortc 当前默认 offer 可能优先 VP8，且不自动生成所有严格 WHIP
 
 - 从 OpenTalking 最新主仓建立独立分支，例如 `feat/standalone-rtmps-whip`；不在 `feat/tipping-qr-code` 上混做推流。
 - 保存 pytest/ruff/mypy/前端 build 基线；记录已有失败。
-- 修复并测试 `docker/Dockerfile.api`、`docker/Dockerfile.worker`、`docker/Dockerfile.flashtalk` 的 flat-layout COPY（只复制各镜像实际需要的 `opentalking/`、`apps/`、`configs/`、`examples/`，不要复制不存在的 `src/`）；在根 `docker-compose.yml` 为 API 显式设置 `OPENTALKING_WORKER_URL=http://worker:9001`。
+- 修复并测试 `deploy/Dockerfile.api`、`deploy/Dockerfile.worker`、`deploy/Dockerfile.flashtalk` 的 flat-layout COPY（只复制各镜像实际需要的 `opentalking/`、`apps/`、`backend/configs/`、`examples/`，不要复制不存在的 `src/`）；在根 `deploy/compose.yml` 为 API 显式设置 `OPENTALKING_WORKER_URL=http://worker:9001`。
 - 新增 `OPENTALKING_STREAMING_ENABLED`，默认 false；关闭时现有 WebRTC、视频生成和首页行为完全不变。
 - 评估 PyAV RTMPS、aiortc H.264/Opus、MediaMTX v1.20.0/image digest 和本机 FFmpeg 能力，产出 spike 记录。spike 必须回答：RTMPS/WHIP DNS pinning + TLS SNI 能否实现、aiortc candidate policy 如何实施、最终使用哪个本地镜像 digest。
 - 冻结并提交本文，记录 commit/hash；冻结前不得进入 P1。
@@ -618,17 +618,17 @@ aiortc 当前默认 offer 可能优先 VP8，且不自动生成所有严格 WHIP
 
 - 分支和基线记录（不提交模型、secret 或大文件）。
 - Docker build 可通过的修复。
-- `opentalking/core/config.py`、`configs/default.yaml`、`.env.example`、`scripts/quickstart/env.example` 的 feature flag 骨架。
+- `backend/opentalking/core/config.py`、`backend/configs/default.yaml`、`.env.example`、`scripts/quickstart/env.example` 的 feature flag 骨架。
 - `docs/zh/roadmap/` 下本文件的实现状态勾选。
 
 **验收**：
 
 ```bash
-docker compose -f docker-compose.yml config --quiet
-docker build -f docker/Dockerfile.api .
-docker build -f docker/Dockerfile.worker .
-docker build -f docker/Dockerfile.flashtalk .
-.venv/bin/pytest tests/unit/test_aiortc_adapter.py -q
+docker compose -f deploy/compose.yml config --quiet
+docker build -f deploy/Dockerfile.api .
+docker build -f deploy/Dockerfile.worker .
+docker build -f deploy/Dockerfile.flashtalk .
+.venv/bin/pytest backend/tests/unit/test_aiortc_adapter.py -q
 ```
 
 ### P1：Program、Clock 与 fan-out
@@ -638,26 +638,26 @@ docker build -f docker/Dockerfile.flashtalk .
 **建议新增文件**：
 
 ```text
-opentalking/streaming/__init__.py
-opentalking/streaming/types.py
-opentalking/streaming/clock.py
-opentalking/streaming/program.py
-opentalking/streaming/manager.py
-opentalking/streaming/tracks.py
-opentalking/streaming/state.py
-opentalking/streaming/security.py
+backend/opentalking/streaming/__init__.py
+backend/opentalking/streaming/types.py
+backend/opentalking/streaming/clock.py
+backend/opentalking/streaming/program.py
+backend/opentalking/streaming/manager.py
+backend/opentalking/streaming/tracks.py
+backend/opentalking/streaming/state.py
+backend/opentalking/streaming/security.py
 ```
 
 **需要修改文件**：
 
 ```text
-opentalking/core/types/frames.py
-opentalking/pipeline/session/runner.py
-opentalking/pipeline/speak/synthesis_runner.py
-opentalking/runtime/task_consumer.py
-opentalking/runtime/server.py
-apps/unified/main.py
-opentalking/providers/rtc/aiortc/adapter.py
+backend/opentalking/core/types/frames.py
+backend/opentalking/pipeline/session/runner.py
+backend/opentalking/pipeline/speak/synthesis_runner.py
+backend/opentalking/runtime/task_consumer.py
+backend/opentalking/runtime/server.py
+backend/apps/unified/main.py
+backend/opentalking/providers/rtc/aiortc/adapter.py
 ```
 
 **实施步骤**：
@@ -683,10 +683,10 @@ opentalking/providers/rtc/aiortc/adapter.py
 
 ```bash
 .venv/bin/pytest \
-  tests/unit/test_program_clock.py \
-  tests/unit/test_program_output_manager.py \
-  tests/unit/test_runner_program_fanout.py \
-  tests/unit/test_session_runner_media_events.py -q
+  backend/tests/unit/test_program_clock.py \
+  backend/tests/unit/test_program_output_manager.py \
+  backend/tests/unit/test_runner_program_fanout.py \
+  backend/tests/unit/test_session_runner_media_events.py -q
 ```
 
 门槛：连续 10 分钟 synthetic idle 不断 tick；speech/interrupt 前后 PTS 单调；Studio WebRTC、测试 sink、第三个慢 sink 同时运行时互不丢队列所有权。
@@ -698,26 +698,26 @@ opentalking/providers/rtc/aiortc/adapter.py
 **建议新增文件**：
 
 ```text
-apps/api/schemas/streaming.py
-apps/api/routes/streaming.py
-apps/api/services/streaming_service.py
-opentalking/runtime/streaming_control.py
+backend/apps/api/modules/streaming.py
+backend/apps/api/modules/streaming.py
+backend/apps/api/modules/streaming_service.py
+backend/opentalking/runtime/streaming_control.py
 ```
 
 **需要修改文件**：
 
 ```text
-apps/api/main.py
-apps/api/routes/sessions.py
-apps/api/services/session_service.py
-opentalking/core/redis_keys.py
-opentalking/core/in_memory_redis.py   # 若状态抽象需要扩展
-opentalking/runtime/server.py
-apps/unified/main.py
-apps/api/services/worker_service.py
-opentalking/runtime/bus.py
-opentalking/core/types/events.py  # 若新增结构化 payload
-opentalking/events/schemas.py
+backend/apps/api/main.py
+backend/apps/api/modules/conversation/sessions.py
+backend/apps/api/modules/conversation/service.py
+backend/opentalking/core/redis_keys.py
+backend/opentalking/core/in_memory_redis.py   # 若状态抽象需要扩展
+backend/opentalking/runtime/server.py
+backend/apps/unified/main.py
+backend/apps/api/core/worker_service.py
+backend/opentalking/runtime/bus.py
+backend/opentalking/core/types/events.py  # 若新增结构化 payload
+backend/opentalking/events/schemas.py
 ```
 
 **实施步骤**：
@@ -725,9 +725,9 @@ opentalking/events/schemas.py
 1. 用 Pydantic discriminated union 校验 `rtmps`/`whip` transport。
 2. 创建 output handle 和脱敏状态；split 模式下 API 只在当前 HTTPS/internal-mTLS 请求生命周期内短暂接触 secret，随后经已鉴权的 worker HTTP route 传给 publisher 内存对象，绝不写 Redis List、快照、日志或幂等收据；unified 模式直接在同一进程内移交。
 3. 实现 10.2 的原子 idempotency reservation 和 worker 侧去重，不得只做“先查后写”；receipt 只保存 payload hash/状态/result 摘要，不能保存原始 secret。
-4. split 模式由 API 通过已鉴权的 worker HTTP route 转发；unified 模式直接调用本进程 handler；二者使用 `opentalking/runtime/streaming_control.py` 的同一 handler 和状态模型。output create 的 secret-bearing command 不走 Redis List；不含 secret 的后续状态命令可按同一 handler 调度。
+4. split 模式由 API 通过已鉴权的 worker HTTP route 转发；unified 模式直接调用本进程 handler；二者使用 `backend/opentalking/runtime/streaming_control.py` 的同一 handler 和状态模型。output create 的 secret-bearing command 不走 Redis List；不含 secret 的后续状态命令可按同一 handler 调度。
 5. 新增 connect/disconnect/reconnect/delete 生命周期；`/start` 改为确认 runner ready，并触发等待中的 `auto_connect`。
-6. 将 `connection_state`、`health`、attempt、last_error（脱敏）、bytes/PTS 指标映射到 GET，并通过 `opentalking/runtime/bus.py::publish_event` 发布到现有 `events_channel(session_id)`。
+6. 将 `connection_state`、`health`、attempt、last_error（脱敏）、bytes/PTS 指标映射到 GET，并通过 `backend/opentalking/runtime/bus.py::publish_event` 发布到现有 `events_channel(session_id)`。
 7. HTTP 状态冻结为：create 成功接收返回 `201 Created`（body 可能为 created/connecting）；connect/disconnect/reconnect 已排队返回 `202 Accepted`；GET 返回 200；delete 完成返回 204，异步停止则返回 202。不得写模糊的“202/201”。请求不等待第三方 ingest 建连。
 8. 给每个 worker 生成 `worker_boot_id`/owner epoch；快照带 TTL、owner 和 updated_at。启动/查询时发现旧 owner 的 `connecting|connected|reconnecting`，对外统一改成 `connection_state=failed`、`health=failed`、`last_error.code=stale_worker_state`，且 `secret_configured=false`，要求客户端重新创建。
 
@@ -740,7 +740,7 @@ opentalking/events/schemas.py
 **验收**：
 
 ```bash
-.venv/bin/pytest apps/api/tests/test_session_outputs.py -q
+.venv/bin/pytest backend/tests/api/test_session_outputs.py -q
 ```
 
 ### P3：RTMPS publisher
@@ -750,10 +750,10 @@ opentalking/events/schemas.py
 **建议新增文件**：
 
 ```text
-opentalking/streaming/codecs.py
-opentalking/streaming/destinations/rtmps.py
-opentalking/streaming/destinations/base.py
-tests/unit/test_rtmps_destination.py
+backend/opentalking/streaming/codecs.py
+backend/opentalking/streaming/destinations/rtmps.py
+backend/opentalking/streaming/destinations/base.py
+backend/tests/unit/test_rtmps_destination.py
 ```
 
 **实施步骤**：
@@ -774,7 +774,7 @@ tests/unit/test_rtmps_destination.py
 **验收**：
 
 ```bash
-.venv/bin/pytest tests/unit/test_rtmps_destination.py -q
+.venv/bin/pytest backend/tests/unit/test_rtmps_destination.py -q
 .venv/bin/python scripts/streaming/receive_rtmps.py \
   --url rtsp://127.0.0.1:8554/live/rtmps-test \
   --output outputs/streaming/rtmps-capture.mp4 --seconds 30
@@ -794,11 +794,11 @@ ffprobe -v error -show_streams -show_packets -show_frames \
 **建议新增文件**：
 
 ```text
-opentalking/streaming/destinations/whip.py
-opentalking/streaming/whip_sdp.py
-opentalking/streaming/ice.py
-tests/unit/test_whip_publisher.py
-tests/unit/test_whip_sdp.py
+backend/opentalking/streaming/destinations/whip.py
+backend/opentalking/streaming/whip_sdp.py
+backend/opentalking/streaming/ice.py
+backend/tests/unit/test_whip_publisher.py
+backend/tests/unit/test_whip_sdp.py
 ```
 
 **实施步骤**：
@@ -821,7 +821,7 @@ tests/unit/test_whip_sdp.py
 **验收**：
 
 ```bash
-.venv/bin/pytest tests/unit/test_whip_publisher.py tests/unit/test_whip_sdp.py -q
+.venv/bin/pytest backend/tests/unit/test_whip_publisher.py backend/tests/unit/test_whip_sdp.py -q
 .venv/bin/python scripts/streaming/receive_whep.py \
   --url https://localhost:8889/whip-test/whep \
   --ca-file outputs/streaming/tls/ca.crt \
@@ -840,8 +840,8 @@ tests/unit/test_whip_sdp.py
 **新增文件**：
 
 ```text
-docker/docker-compose.streaming-test.yml
-configs/streaming/mediamtx.yml
+deploy/docker-compose.streaming-test.yml
+backend/configs/streaming/mediamtx.yml
 scripts/streaming/generate_test_pki.sh
 scripts/streaming/streaming_e2e.py
 scripts/streaming/receive_rtmps.py
@@ -864,7 +864,7 @@ tests/integration/test_streaming_e2e.py
 - 运行前检查容器 health，运行后自动 `down -v` 清理。
 - 如果目标 MediaMTX 版本的 RTMPS TLS 配置字段不同，先锁定版本并在配置测试中验证，不允许凭记忆写未验证字段。
 
-`configs/streaming/mediamtx.yml` 必须由 harness 把运行时凭据和 PKI 路径渲染到临时文件，核心结构固定为：
+`backend/configs/streaming/mediamtx.yml` 必须由 harness 把运行时凭据和 PKI 路径渲染到临时文件，核心结构固定为：
 
 ```yaml
 rtmp: true
@@ -945,7 +945,7 @@ paths:
 
 ## 9. 配置契约
 
-配置字段统一放在 `opentalking/core/config.py`，并同步 `configs/default.yaml`、`.env.example`、`scripts/quickstart/env.example`。建议字段如下；最终命名必须在 P0 冻结后保持一致：
+配置字段统一放在 `backend/opentalking/core/config.py`，并同步 `backend/configs/default.yaml`、`.env.example`、`scripts/quickstart/env.example`。建议字段如下；最终命名必须在 P0 冻结后保持一致：
 
 ```text
 OPENTALKING_STREAMING_ENABLED=false
@@ -1040,15 +1040,15 @@ stale_worker_state
 
 | 测试文件 | 必须覆盖 |
 | --- | --- |
-| `tests/unit/test_program_clock.py` | PTS 单调、source timestamp 回退、CFR、静音补齐、重连起点 |
-| `tests/unit/test_program_output_manager.py` | attach/detach、bounded queue、慢 branch 隔离、引用计数 |
-| `tests/unit/test_runner_program_fanout.py` | SessionRunner/FlashTalkRunner idle/speech/interrupt/close |
-| `tests/unit/test_rtmps_destination.py` | parser、TLS、publish 状态、重连、IDR、错误分类 |
-| `tests/unit/test_whip_publisher.py` | offer/POST/201/Location/DELETE、redirect、状态和重连 |
-| `tests/unit/test_whip_sdp.py` | H.264/Opus、sendonly、BUNDLE、rtcp-mux、candidate policy |
-| `apps/api/tests/test_session_outputs.py` | schema、鉴权、幂等、split/unified handler、脱敏 |
-| `tests/unit/test_task_consumer.py` | streaming control task 转发和 command id |
-| `tests/unit/test_aiortc_adapter.py` | 旧 Studio WebRTC 回归 |
+| `backend/tests/unit/test_program_clock.py` | PTS 单调、source timestamp 回退、CFR、静音补齐、重连起点 |
+| `backend/tests/unit/test_program_output_manager.py` | attach/detach、bounded queue、慢 branch 隔离、引用计数 |
+| `backend/tests/unit/test_runner_program_fanout.py` | SessionRunner/FlashTalkRunner idle/speech/interrupt/close |
+| `backend/tests/unit/test_rtmps_destination.py` | parser、TLS、publish 状态、重连、IDR、错误分类 |
+| `backend/tests/unit/test_whip_publisher.py` | offer/POST/201/Location/DELETE、redirect、状态和重连 |
+| `backend/tests/unit/test_whip_sdp.py` | H.264/Opus、sendonly、BUNDLE、rtcp-mux、candidate policy |
+| `backend/tests/api/test_session_outputs.py` | schema、鉴权、幂等、split/unified handler、脱敏 |
+| `backend/tests/unit/test_task_consumer.py` | streaming control task 转发和 command id |
+| `backend/tests/unit/test_aiortc_adapter.py` | 旧 Studio WebRTC 回归 |
 
 ### 11.2 集成测试
 
@@ -1107,12 +1107,12 @@ sample_rate,channels,start_time,duration \
 cd /home/lyf/opentalking
 .venv/bin/ruff check opentalking apps tests
 .venv/bin/mypy \
-  opentalking/core opentalking/events opentalking/avatar \
-  apps/api apps/unified apps/cli \
+  backend/opentalking/core backend/opentalking/events backend/opentalking/avatar \
+  backend/apps/api backend/apps/unified backend/apps/cli \
   --ignore-missing-imports
-.venv/bin/pytest apps/api/tests tests -q
+.venv/bin/pytest backend/tests/api tests -q
 
-cd apps/web
+cd frontend
 npm ci
 npm run test
 npm run typecheck
@@ -1138,7 +1138,7 @@ cd /home/lyf/opentalking
 cd /home/lyf/opentalking
 scripts/streaming/generate_test_pki.sh outputs/streaming/tls
 .venv/bin/python scripts/streaming/prepare_mediamtx_harness.py
-docker compose -f docker/docker-compose.streaming-test.yml up -d --wait
+docker compose -f deploy/docker-compose.streaming-test.yml up -d --wait
 set -a; . outputs/streaming/credentials.env; set +a
 .venv/bin/python scripts/streaming/streaming_e2e.py \
   --api http://127.0.0.1:8000 \
@@ -1149,7 +1149,7 @@ set -a; . outputs/streaming/credentials.env; set +a
   --rtmps-stream-key rtmps-test \
   --whip-endpoint https://localhost:8889/whip-test/whip \
   --ca-file outputs/streaming/tls/ca.crt
-docker compose -f docker/docker-compose.streaming-test.yml down -v
+docker compose -f deploy/docker-compose.streaming-test.yml down -v
 ```
 
 脚本必须在失败时保留脱敏日志和 capture 路径，成功后可清理临时容器；不能把测试 key、证书私钥或 capture 大文件提交进 Git。
@@ -1158,11 +1158,11 @@ docker compose -f docker/docker-compose.streaming-test.yml down -v
 
 ### 13.1 Unified
 
-`apps/unified/main.py` 内启动 API、task consumer、runner 和 ProgramOutputManager。必须保持单 worker；streaming manager 的任务不能阻塞 FastAPI event loop，CPU 编码使用专门线程/进程或 PyAV non-blocking strategy，并在测试中确认。
+`backend/apps/unified/main.py` 内启动 API、task consumer、runner 和 ProgramOutputManager。必须保持单 worker；streaming manager 的任务不能阻塞 FastAPI event loop，CPU 编码使用专门线程/进程或 PyAV non-blocking strategy，并在测试中确认。
 
 ### 13.2 Split API + Worker
 
-API 进程只校验和转发 output control；真正的 manager/publisher 在 `opentalking/runtime/server.py` 持有 runner 的 worker 内。需要显式设置 `OPENTALKING_WORKER_URL`，不能依赖容器内的 localhost 默认值。
+API 进程只校验和转发 output control；真正的 manager/publisher 在 `backend/opentalking/runtime/server.py` 持有 runner 的 worker 内。需要显式设置 `OPENTALKING_WORKER_URL`，不能依赖容器内的 localhost 默认值。
 
 ### 13.3 Docker
 

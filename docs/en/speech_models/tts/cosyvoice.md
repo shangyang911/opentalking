@@ -20,7 +20,7 @@ consume PCM audio over HTTP.
 
 ```bash title="Terminal"
 cd "$OPENTALKING_HOME"
-uv sync --extra dev --extra models --extra local-audio --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --extra local-audio --python 3.11
 export DIGITAL_HUMAN_HOME="${DIGITAL_HUMAN_HOME:-$(cd "$OPENTALKING_HOME/.." && pwd)}"
 export OPENTALKING_LOCAL_AUDIO_MODEL_ROOT="${OPENTALKING_LOCAL_AUDIO_MODEL_ROOT:-$DIGITAL_HUMAN_HOME/models/local-audio}"
 

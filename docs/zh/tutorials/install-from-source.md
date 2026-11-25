@@ -40,7 +40,7 @@ export OMNIRT_MODEL_ROOT="$DIGITAL_HUMAN_HOME/models"
 ### 2. 安装 Python 依赖
 
 ```bash title="终端"
-uv sync --extra dev --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --python 3.11
 source .venv/bin/activate
 ```
 
@@ -52,7 +52,7 @@ source .venv/bin/activate
 ```bash title="终端"
 python3 -m venv .venv
 source .venv/bin/activate
-pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e ".[dev]"
+pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e "./backend[dev]"
 ```
 
 说明：
@@ -64,7 +64,7 @@ pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e ".[dev]"
 ### 3. 安装前端依赖
 
 ```bash title="终端"
-cd apps/web
+cd frontend
 npm ci
 cd ../..
 ```
@@ -115,7 +115,7 @@ uvicorn apps.unified.main:app --reload --port 8000
 前端单独启动：
 
 ```bash title="终端"
-cd apps/web
+cd frontend
 npm run dev -- --host 0.0.0.0
 ```
 
@@ -333,9 +333,9 @@ python -m apps.worker.main --host 0.0.0.0 --port 9001
 ```bash title="终端"
 cd "$DIGITAL_HUMAN_HOME/opentalking"
 git pull
-uv sync --extra dev --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --python 3.11
 source .venv/bin/activate
-cd apps/web && npm ci && cd ../..
+cd frontend && npm ci && cd ../..
 ```
 
 数据库 schema 迁移在进程启动时自动执行。
@@ -344,7 +344,7 @@ cd apps/web && npm ci && cd ../..
 
 | 现象 | 处理方式 |
 |------|---------|
-| `ModuleNotFoundError: opentalking` | 通过 `source .venv/bin/activate` 激活虚拟环境，或执行 `uv sync --extra dev --python 3.11`；兼容 fallback 为 `pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e ".[dev]"`。 |
+| `ModuleNotFoundError: opentalking` | 通过 `source .venv/bin/activate` 激活虚拟环境，或执行 `UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --python 3.11`；兼容 fallback 为 `pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -e "./backend[dev]"`。 |
 | TTS 解码时报 `ffmpeg: not found` | 安装 ffmpeg。macOS：`brew install ffmpeg`；Debian/Ubuntu：`apt install ffmpeg`。 |
 | `torch.cuda.is_available()` 返回 False | 检查 NVIDIA driver、CUDA Toolkit，以及 `torch` 包是否与 CUDA 版本匹配。 |
 | OmniRT 因 `CUDA out of memory` 退出 | 降低 `OPENTALKING_FLASHTALK_FRAME_NUM`、`OPENTALKING_FLASHTALK_SAMPLE_STEPS` 或输出分辨率，参见 [配置 → FlashTalk 渲染参数](configuration.md#flashtalk)。 |

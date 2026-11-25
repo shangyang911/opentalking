@@ -4,35 +4,35 @@
 
 ## 涉及文件
 
-- `opentalking/agent/knowledge_index.py`
+- `backend/opentalking/agent/knowledge_index.py`
   - 新增 LightRAG 适配层。
   - 对外暴露统一的 `KnowledgeIndex` 协议和 `LightRAGKnowledgeIndex` 实现。
-- `opentalking/agent/knowledge_store.py`
+- `backend/opentalking/agent/knowledge_store.py`
   - 继续负责知识库元数据、文件落盘、PDF/文本抽取、状态维护。
   - 上传、导入、重建、删除、查询时调用 `KnowledgeIndex`。
-- `apps/api/schemas/session.py`
+- `backend/apps/api/modules/conversation/schemas.py`
   - 增加实时会话知识库切换请求和响应模型。
-- `apps/api/services/session_service.py`
+- `backend/apps/api/modules/conversation/service.py`
   - 增加运行中 session 的知识库选择更新逻辑，写回 Redis 并通知 worker。
-- `apps/api/routes/sessions.py`
+- `backend/apps/api/modules/conversation/sessions.py`
   - 增加 `POST /sessions/{session_id}/knowledge-bases`。
-- `opentalking/runtime/task_consumer.py`
+- `backend/opentalking/runtime/task_consumer.py`
   - 支持 worker 收到知识库切换任务后更新已加载 runner。
-- `apps/web/src/App.tsx`
+- `frontend/src/app/App.tsx`
   - 前端切换知识库后同步当前实时会话。
-- `apps/web/src/components/SettingsPanel.tsx`
+- `frontend/src/features/settings/SettingsPanel.tsx`
   - 实时对话进行中仍允许切换已就绪知识库。
-- `apps/web/src/lib/api.ts`
+- `frontend/src/shared/api/client.ts`
   - 增加 session 知识库切换 API 类型。
-- `opentalking/core/config.py`
+- `backend/opentalking/core/config.py`
   - 增加 LightRAG 相关配置字段。
 - `.env.example`
   - 增加 LightRAG 配置示例。
 - `pyproject.toml`
   - 增加 `lightrag-hku` 依赖。
-- `apps/api/tests/test_agent_knowledge.py`
+- `backend/tests/api/test_agent_knowledge.py`
   - 增加 LightRAG 索引、查询、导入、删除重建相关测试。
-- `tests/unit/test_agent_memory.py`
+- `backend/tests/unit/test_agent_memory.py`
   - 调整 Agent 上下文测试，显式使用 fake LightRAG 索引。
 
 ## 总体架构
@@ -54,7 +54,7 @@
 
 ## LightRAG 适配层
 
-新增文件 `opentalking/agent/knowledge_index.py` 是本次改造的核心。
+新增文件 `backend/opentalking/agent/knowledge_index.py` 是本次改造的核心。
 
 ### `KnowledgeIndex`
 

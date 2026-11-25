@@ -75,7 +75,7 @@ export OPENTALKING_RUNTIME_ROOT="${OPENTALKING_RUNTIME_ROOT:-$DIGITAL_HUMAN_HOME
 export OPENTALKING_LOCAL_AUDIO_MODEL_ROOT="${OPENTALKING_LOCAL_AUDIO_MODEL_ROOT:-$OPENTALKING_MODEL_ROOT/local-audio}"
 cd "$OPENTALKING_HOME"
 
-uv sync --extra dev --extra models --extra local-audio --extra quicktalk-cuda --python 3.11
+UV_PROJECT_ENVIRONMENT="$PWD/.venv" uv sync --project backend --extra dev --extra models --extra local-audio --extra quicktalk-cuda --python 3.11
 python scripts/download_local_audio_models.py \
   --root "$OPENTALKING_LOCAL_AUDIO_MODEL_ROOT" \
   --model sensevoice-small \

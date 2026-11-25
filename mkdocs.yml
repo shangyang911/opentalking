@@ -6,6 +6,7 @@ repo_name: datascale-ai/opentalking
 edit_uri: edit/main/docs/
 
 exclude_docs: |
+  archive/
   superpowers/
   requirements.txt
   */design/architecture-review.md
@@ -302,6 +303,7 @@ nav:
           - Agent Knowledge LightRAG: developer-guide/agent-knowledge-lightrag.md
           - Agent Memory and Knowledge RAG: design/agent-memory-knowledge-rag.md
       - Docs:
+          - Project Layout and Development: docs/project-layout.md
           - API Interfaces: docs/api/index.md
           - Sessions: docs/api/sessions.md
           - Streaming outputs: docs/api/streaming.md

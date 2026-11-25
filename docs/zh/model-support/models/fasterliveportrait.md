@@ -76,7 +76,7 @@ OMNIRT_FASTLIVEPORTRAIT_RUNTIME=1 \
 OMNIRT_FASTLIVEPORTRAIT_LOAD_MODELS=1 \
 OMNIRT_FASTLIVEPORTRAIT_ROOT="$FASTERLIVEPORTRAIT_HOME" \
 OMNIRT_FASTLIVEPORTRAIT_CHECKPOINTS_DIR="$OMNIRT_MODEL_ROOT/FasterLivePortrait/checkpoints" \
-OMNIRT_FASTLIVEPORTRAIT_CFG=configs/trt_infer.yaml \
+OMNIRT_FASTLIVEPORTRAIT_CFG=backend/configs/trt_infer.yaml \
 OMNIRT_FASTLIVEPORTRAIT_DEVICE=cuda:0 \
 OMNIRT_FASTLIVEPORTRAIT_JPEG_QUALITY=85 \
 uv run omnirt serve-avatar-ws --host 0.0.0.0 --port 9000 --backend cuda
@@ -113,7 +113,7 @@ bash scripts/start_unified.sh --backend omnirt --model fasterliveportrait
 
 ## 实时对话参数
 
-实时对话默认参数位于 `configs/synthesis/fasterliveportrait.yaml`。常用字段：
+实时对话默认参数位于 `backend/configs/synthesis/fasterliveportrait.yaml`。常用字段：
 
 | 参数 | 作用 | 常用设置 |
 | --- | --- | --- |

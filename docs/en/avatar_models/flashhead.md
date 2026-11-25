@@ -34,7 +34,7 @@ OPENTALKING_FLASHHEAD_BASE_URL=http://<flashhead-host>:8766
 OPENTALKING_FLASHHEAD_MODEL=soulx-flashhead-1.3b
 ```
 
-```yaml title="configs/default.yaml"
+```yaml title="backend/configs/default.yaml"
 models:
   flashhead:
     backend: direct_ws

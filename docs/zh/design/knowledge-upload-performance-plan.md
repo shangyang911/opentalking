@@ -113,7 +113,7 @@ hash 缓存和 fast-index/enrichment 拆分，并用同模板 8/10/12/20/50KB �
 
 ### 2.1 当前上传路径
 
-知识库文档上传入口位于 `apps/api/routes/agent.py`：
+知识库文档上传入口位于 `backend/apps/api/modules/agent.py`：
 
 ```text
 UploadFile 分块写临时文件
@@ -269,14 +269,14 @@ worker
 
 | 文件/模块 | 计划职责 |
 | --- | --- |
-| `opentalking/agent/knowledge_store.py` | 保留校验、文件原子落盘、SQLite 元数据/chunk 事务；提供“创建文档记录”和“完成抽取/索引状态”的可组合内部方法 |
-| `opentalking/agent/knowledge_index.py` | 增加 batch index 能力、能力探测、索引阶段指标、受控实例/按 KB 锁；不在这里管理 HTTP 生命周期 |
+| `backend/opentalking/agent/knowledge_store.py` | 保留校验、文件原子落盘、SQLite 元数据/chunk 事务；提供“创建文档记录”和“完成抽取/索引状态”的可组合内部方法 |
+| `backend/opentalking/agent/knowledge_index.py` | 增加 batch index 能力、能力探测、索引阶段指标、受控实例/按 KB 锁；不在这里管理 HTTP 生命周期 |
 | 新的 knowledge job service/worker | 持久化 job、重试、幂等、按 KB 串行、跨 KB 有界并行、worker 恢复 |
-| `apps/api/routes/agent.py` | 保持现有路由；提交 job 并返回可选新增状态字段；不直接等待 LightRAG |
-| `apps/api/schemas` | 为文档状态、index phase、progress 和错误信息增加向后兼容字段 |
-| `opentalking/runtime` 或独立 worker 入口 | 在 Redis/单进程模式下消费知识库 job；与 speak/init 队列保持可区分的命名空间 |
-| `apps/web/src/components/AssetLibraryWorkspace.tsx` | 显示 uploaded/extracting/indexing/ready/error；批量上传不再把每个请求串行等待当作整体进度 |
-| `apps/api/tests` | fake index、fake queue、状态/并发/一致性/性能测试 |
+| `backend/apps/api/modules/agent.py` | 保持现有路由；提交 job 并返回可选新增状态字段；不直接等待 LightRAG |
+| `backend/apps/api/modules` | 为文档状态、index phase、progress 和错误信息增加向后兼容字段 |
+| `backend/opentalking/runtime` 或独立 worker 入口 | 在 Redis/单进程模式下消费知识库 job；与 speak/init 队列保持可区分的命名空间 |
+| `frontend/src/features/works/AssetLibraryWorkspace.tsx` | 显示 uploaded/extracting/indexing/ready/error；批量上传不再把每个请求串行等待当作整体进度 |
+| `backend/tests/api` | fake index、fake queue、状态/并发/一致性/性能测试 |
 
 实现时先落一个 `KnowledgeIndex` 的 batch/capability 协议，再接入真实 LightRAG；这样可以在没有安装 LightRAG 或没有远程 key 的 CI 中验证上传和 worker 状态。
 
@@ -629,10 +629,10 @@ HTTP 上传请求
 本分支基础实现已完成以下静态和定向验证：
 
 ```text
-python -m compileall opentalking apps/api
-ruff check opentalking apps/api
+python -m compileall opentalking backend/apps/api
+ruff check opentalking backend/apps/api
 git diff --check
-pytest apps/api/tests/test_agent_knowledge.py -q -k 'deferred or index_job'
+pytest backend/tests/api/test_agent_knowledge.py -q -k 'deferred or index_job'
 ```
 
 结果（系统 Python）：定向知识库测试 `37 passed, 2 deselected`；缺少 LightRAG 的系统环境会
@@ -674,7 +674,7 @@ OPENTALKING_BENCHMARK_INDEX_DELAY_MS=100 \
 
 ### 7.1 阶段一单元测试
 
-建议新增或扩展 `apps/api/tests/test_agent_knowledge.py`，并保持现有 `tests/unit/test_agent_memory.py` 的 fake index 注入方式。
+建议新增或扩展 `backend/tests/api/test_agent_knowledge.py`，并保持现有 `backend/tests/unit/test_agent_memory.py` 的 fake index 注入方式。
 
 #### 执行调度
 
@@ -712,7 +712,7 @@ OPENTALKING_BENCHMARK_INDEX_DELAY_MS=100 \
 
 ### 7.2 阶段一 API/回归测试
 
-基于现有 `apps/api/tests/test_agent_knowledge.py` 保留并扩展：
+基于现有 `backend/tests/api/test_agent_knowledge.py` 保留并扩展：
 
 - 普通 Markdown 上传：状态、文件内容、chunk_count、列表、删除；
 - PPTX 上传；
@@ -726,7 +726,7 @@ OPENTALKING_BENCHMARK_INDEX_DELAY_MS=100 \
 
 ### 7.3 阶段二状态机单元测试
 
-建议新增独立测试文件 `apps/api/tests/test_agent_knowledge_index_jobs.py`，避免把 job 行为全部塞入已有大文件。
+建议新增独立测试文件 `backend/tests/api/test_agent_knowledge_index_jobs.py`，避免把 job 行为全部塞入已有大文件。
 
 #### 状态转换
 

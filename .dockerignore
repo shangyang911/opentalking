@@ -10,10 +10,13 @@ __pycache__
 htmlcov
 data
 docs
-tests
-apps/web/node_modules
-apps/web/dist
+backend/tests
+**/node_modules
+**/dist
+**/build
 outputs
+output
+run
 *.log
 .env
 .env.*

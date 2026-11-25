@@ -17,10 +17,10 @@ session lifecycle, the event bus, and the pluggable synthesis backend boundary.
 ```mermaid
 flowchart TB
     subgraph Frontend
-      Web[apps/web<br/>React + Vite]
+      Web[frontend<br/>React + Vite]
     end
     subgraph "OpenTalking server"
-      API[apps/api<br/>FastAPI routes<br/>Session state]
+      API[backend/apps/api<br/>FastAPI routes<br/>Session state]
       Worker[opentalking.runtime<br/>Worker service<br/>Pipeline driver]
       Bus[(Redis<br/>or in-memory)]
     end
@@ -43,11 +43,11 @@ flowchart TB
 
 | Component | Responsibility | Source |
 |-----------|---------------|--------|
-| `apps/api` | HTTP and WebSocket entry, session CRUD, WebRTC signaling, SSE event stream. | `apps/api/routes/` |
-| `opentalking-worker` | Drives one or more sessions through the render pipeline. | `opentalking/runtime/main.py`, `opentalking/runtime/task_consumer.py`, `opentalking/runtime/server.py` |
-| `apps/unified` | Combines API, Worker, and an in-memory bus in one process. Intended for development. | `apps/unified/main.py` |
+| `backend/apps/api` | HTTP and WebSocket entry, session CRUD, WebRTC signaling, SSE event stream. | `backend/apps/api/modules/` |
+| `opentalking-worker` | Drives one or more sessions through the render pipeline. | `backend/opentalking/runtime/main.py`, `backend/opentalking/runtime/task_consumer.py`, `backend/opentalking/runtime/server.py` |
+| `backend/apps/unified` | Combines API, Worker, and an in-memory bus in one process. Intended for development. | `backend/apps/unified/main.py` |
 | `opentalking/` library | Providers, adapters, interfaces, types, configuration, bus, and pipeline code. | `opentalking/` (flat layout) |
-| Synthesis backend | Per-model runtime selected by the backend resolver: `mock`, `local`, `direct_ws`, or `omnirt`. | `opentalking/providers/synthesis/` |
+| Synthesis backend | Per-model runtime selected by the backend resolver: `mock`, `local`, `direct_ws`, or `omnirt`. | `backend/opentalking/providers/synthesis/` |
 | OmniRT (external) | Heavyweight, multi-card, GPU/NPU, and remote inference when a model uses `backend: omnirt`. | [datascale-ai/omnirt](https://github.com/datascale-ai/omnirt) |
 | Redis (external) | Pub/sub bus between the API and one or more Workers. | Optional in unified mode. |
 
@@ -57,15 +57,15 @@ flowchart TB
 flowchart LR
     subgraph "Topology A: Unified"
       direction TB
-      U[apps/unified]
+      U[backend/apps/unified]
     end
     subgraph "Topology B: API + Worker"
       direction TB
-      Aa[apps/api] --- Rr[(Redis)] --- Ww[opentalking-worker]
+      Aa[backend/apps/api] --- Rr[(Redis)] --- Ww[opentalking-worker]
     end
     subgraph "Topology C: API + multiple Workers"
       direction TB
-      Ab[apps/api] --- Rb[(Redis)]
+      Ab[backend/apps/api] --- Rb[(Redis)]
       Rb --- Wb1[Worker 1]
       Rb --- Wb2[Worker 2]
       Rb --- Wb3[Worker N]
@@ -113,8 +113,8 @@ sequenceDiagram
 ## Event bus
 
 The bus carries one logical channel per session and a global control channel. Events
-are JSON-encoded; schemas are defined in `opentalking/core/types/events.py` and
-`opentalking/events/schemas.py`.
+are JSON-encoded; schemas are defined in `backend/opentalking/core/types/events.py` and
+`backend/opentalking/events/schemas.py`.
 
 | Event | Producer | Consumer |
 |-------|----------|----------|

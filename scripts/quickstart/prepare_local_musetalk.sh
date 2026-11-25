@@ -56,7 +56,7 @@ mkdir -p "$TMPDIR" "$PIP_CACHE_DIR" "$UV_CACHE_DIR" "$preprocess_root"
 
 if [[ ! -f "$repo_root/.venv/bin/activate" ]]; then
   echo "Missing OpenTalking virtualenv: $repo_root/.venv" >&2
-  echo "Run this first: cd \"$repo_root\" && uv sync --extra models --extra dev --python 3.11" >&2
+  echo "Run this first: cd \"$repo_root\" && UV_PROJECT_ENVIRONMENT=\"$repo_root/.venv\" uv sync --project \"$repo_root/backend\" --extra models --extra dev --python 3.11" >&2
   exit 1
 fi
 
@@ -200,7 +200,7 @@ if ! check_main_runtime >/dev/null 2>&1; then
     cd "$repo_root"
     source .venv/bin/activate
     python -m pip install "setuptools<81"
-    python -m pip install -e ".[models]"
+    python -m pip install -e "./backend[models]"
   )
 fi
 

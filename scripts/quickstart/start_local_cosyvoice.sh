@@ -172,7 +172,7 @@ fi
 
 (
   cd "$repo_root"
-  export PYTHONPATH="$repo_root${PYTHONPATH:+:$PYTHONPATH}"
+  export PYTHONPATH="$repo_root/backend:$repo_root${PYTHONPATH:+:$PYTHONPATH}"
   export OPENTALKING_TTS_LOCAL_COSYVOICE_PRELOAD="${OPENTALKING_TTS_LOCAL_COSYVOICE_PRELOAD:-1}"
   if declare -F quickstart_detach >/dev/null 2>&1; then
     quickstart_detach "$log_file" "$cosy_python" scripts/local_cosyvoice_service.py --host "$host" --port "$port" >"$pid_file"

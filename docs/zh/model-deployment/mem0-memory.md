@@ -145,7 +145,7 @@ curl -s "http://127.0.0.1:8000/memory/libraries/default/items?profile_id=default
 
 ```bash title="终端"
 python -m pip check
-python -m pytest tests/unit/test_memory_provider.py apps/api/tests/test_memory_api.py apps/api/tests/test_config.py
+python -m pytest backend/tests/unit/test_memory_provider.py backend/tests/api/test_memory_api.py backend/tests/api/test_config.py
 ```
 
 ## 参考资料
