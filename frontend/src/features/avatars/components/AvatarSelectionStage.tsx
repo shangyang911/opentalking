@@ -147,7 +147,7 @@ export function AvatarSelectionStage({
         <section className="flex min-h-0 flex-col">
           <div className="mb-4 flex items-end justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-cyan-700">个人形象库</p>
+              <p className="text-sm font-semibold text-cyan-700">形象库</p>
               <h2 className="mt-1 text-2xl font-semibold text-slate-950">选择数字人形象</h2>
             </div>
             <span className="shrink-0 text-sm font-medium text-slate-500">{avatars.length} 个内置资产</span>
