@@ -11,6 +11,7 @@ type AvatarSelectionStageProps = {
   selectedModelLabel: string;
   selectedVoiceLabel: string;
   loading: boolean;
+  ending?: boolean;
   queued: boolean;
   modelConnected: boolean;
   modelBadge: ModelConnectionBadge;
@@ -59,6 +60,7 @@ export function AvatarSelectionStage({
   selectedModelLabel,
   selectedVoiceLabel,
   loading,
+  ending = false,
   queued,
   modelConnected,
   modelBadge,
@@ -84,8 +86,8 @@ export function AvatarSelectionStage({
   const [customRemoveBackground, setCustomRemoveBackground] = useState(false);
   const [customUploadState, setCustomUploadState] = useState<"idle" | "processing" | "complete">("idle");
   const [createdCustomAvatar, setCreatedCustomAvatar] = useState<AvatarSummary | null>(null);
-  const baseDisabled = loading || queued || prewarmState === "preparing" || !selectedAvatar || !modelConnected;
-  const startLabel = queued
+  const baseDisabled = ending || loading || queued || prewarmState === "preparing" || !selectedAvatar || !modelConnected;
+  const startLabel = ending ? "正在结束..." : queued
     ? "排队中"
     : loading
       ? "启动中..."
@@ -145,7 +147,7 @@ export function AvatarSelectionStage({
         <section className="flex min-h-0 flex-col">
           <div className="mb-4 flex items-end justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-cyan-700">形象库</p>
+              <p className="text-sm font-semibold text-cyan-700">个人形象库</p>
               <h2 className="mt-1 text-2xl font-semibold text-slate-950">选择数字人形象</h2>
             </div>
             <span className="shrink-0 text-sm font-medium text-slate-500">{avatars.length} 个内置资产</span>
